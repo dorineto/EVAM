@@ -6,20 +6,29 @@
  */
 
 import React from 'react';
-import {Text} from 'react-native';
 
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-
 import Dashboard from './Presenters/Screens/Dashboard';
 import Estoque from './Presenters/Screens/Estoque';
 import Vendas from './Presenters/Screens/Vendas';
 import Configuracoes from './Presenters/Screens/Configuracoes';
+
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {IconName} from '@fortawesome/fontawesome-svg-core';
+
+import {library} from '@fortawesome/fontawesome-svg-core';
+import {
+  faChartPie,
+  faBoxesStacked,
+  faReceipt,
+  faGears,
+} from '@fortawesome/free-solid-svg-icons';
+
+library.add(faChartPie, faBoxesStacked, faReceipt, faGears);
 
 const Tab = createBottomTabNavigator();
 
@@ -30,7 +39,7 @@ function App(): JSX.Element {
         <Tab.Navigator
           screenOptions={({route}) => ({
             tabBarIcon: ({focused, color, size}) => {
-              let iconName: string;
+              let iconName: IconName;
 
               if (route.name === 'Dashboard') {
                 iconName = 'chart-pie';
@@ -42,13 +51,13 @@ function App(): JSX.Element {
                 iconName = 'gears';
               }
 
-              // //<FontAwesomeIcon icon="fa-solid fa-chart-pie" />
-              // //<FontAwesomeIcon icon="fa-solid fa-boxes-stacked" />
-              // //<FontAwesomeIcon icon="fa-solid fa-receipt" />
-              // //<FontAwesomeIcon icon="fa-solid fa-gears" />
-
-              // return <FontAwesomeIcon icon={['fas', iconName]} />;
-              return <Text>{iconName}</Text>;
+              return (
+                <FontAwesomeIcon
+                  icon={['fas', iconName]}
+                  color={color}
+                  size={size}
+                />
+              );
             },
             tabBarActiveTintColor: 'tomato',
             tabBarInactiveTintColor: 'gray',

@@ -110,7 +110,9 @@ function App(): JSX.Element {
         <CasoUso.Provider value={casoUsoInit}>
             <SafeAreaProvider>
                 <NavigationContainer>
-                    <Tab.Navigator screenOptions={renderIconsBar}>
+                    <Tab.Navigator
+                        screenOptions={renderIconsBar}
+                        initialRouteName="Dashboard">
                         <Tab.Screen name="Dashboard" component={Dashboard} />
                         <Tab.Screen name="Estoque" component={Estoque} />
                         <Tab.Screen name="Vendas" component={Vendas} />

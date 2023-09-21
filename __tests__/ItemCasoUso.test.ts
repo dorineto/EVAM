@@ -1,5 +1,6 @@
 import {ItemCasoUso} from '../src/CasosUsos/ItemCasoUso';
-import {Item, eItemTipo} from '../src/Entidades/Item';
+import {Item, ItemEstoque, eItemTipo} from '../src/Entidades/Item';
+import {Medida, eMedida, getMedida} from '../src/Entidades/Medida';
 import {ItemRepositorio} from '../src/Repositorios/ItemRepositorio';
 
 let itemRepositorioStub: ItemRepositorio = {
@@ -14,17 +15,46 @@ describe('Quando listaMateriasPrimas', () => {
         };
     });
 
-    it('Caso retorne registros do repositorio então retorna os registros', () => {
-        itemRepositorioStub.listaMateriasPrimas = jest.fn(async () => {});
+    it.concurrent(
+        'Caso retorne registros do repositorio então retorna os registros',
+        async () => {
+            itemRepositorioStub.listaMateriasPrimas = jest.fn(async () =>
+                ItemEstoqueBuilder.CriaListaTeste(1, 5),
+            );
 
-        let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
-        expect(itemCasoUsoTest.listaMateriasPrimas()).not.toHaveLength(0);
-    });
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
 
-    it('Caso não retorna registros do repositorio então retorna vazio', () => {
-        let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
-        expect(itemCasoUsoTest.listaMateriasPrimas()).toHaveLength(0);
-    });
+            let retorno = await itemCasoUsoTest.listaMateriasPrimas();
+
+            expect(retorno).not.toHaveLength(0);
+            expect(retorno).toEqual(ItemEstoqueBuilder.CriaListaTeste(1, 5));
+        },
+    );
+
+    it.concurrent(
+        'Caso não retorna registros do repositorio então retorna vazio',
+        async () => {
+            itemRepositorioStub.listaMateriasPrimas = async () => [];
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+            expect(await itemCasoUsoTest.listaMateriasPrimas()).toHaveLength(0);
+        },
+    );
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            itemRepositorioStub.listaMateriasPrimas = async function () {
+                throw new Error('Error repositorio esperado');
+            };
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            await expect(
+                itemCasoUsoTest.listaMateriasPrimas(),
+            ).rejects.toThrow();
+        },
+    );
 });
 
 class ItemBuilder {
@@ -62,6 +92,13 @@ class ItemBuilder {
         };
     }
 
+    static CriaItemTeste(
+        id: number = 1,
+        itemBuilder: ItemBuilder | null = null,
+    ): Item {
+        return this.CriaListaTeste(id, 1, itemBuilder)[0];
+    }
+
     static CriaListaTeste(
         inicioId: number = 1,
         quantity: number = 1,
@@ -85,7 +122,77 @@ class ItemBuilder {
     }
 }
 
-class ItemEstoqueBuilder {}
+class ItemEstoqueBuilder {
+    private _item: Item = ItemBuilder.CriaItemTeste();
+    private _medida: Medida = getMedida(eMedida.unidade);
+    private _qtd: number = 0;
+    private _valorMediaUnidade: number = 0;
+
+    setItemInfo(item: Item): ItemEstoqueBuilder {
+        this._item = item;
+        return this;
+    }
+
+    setMedida(medida: Medida): ItemEstoqueBuilder {
+        this._medida = medida;
+        return this;
+    }
+
+    setQtd(qtd: number): ItemEstoqueBuilder {
+        this._qtd = qtd;
+        return this;
+    }
+
+    setValorMediaUnidade(valorMediaUnidade: number): ItemEstoqueBuilder {
+        this._valorMediaUnidade = valorMediaUnidade;
+        return this;
+    }
+
+    build(): ItemEstoque {
+        return {
+            item: this._item,
+            medida: this._medida,
+            qtd: this._qtd,
+            valorMediaUnidade: this._valorMediaUnidade,
+        };
+    }
+
+    static CriaItemTeste(
+        id: number = 1,
+        itemBuilder: ItemBuilder | null = null,
+        itemEstoqueBuilder: ItemEstoqueBuilder | null = null,
+    ): ItemEstoque {
+        return this.CriaListaTeste(id, 1, itemBuilder, itemEstoqueBuilder)[0];
+    }
+
+    static CriaListaTeste(
+        inicioId: number = 1,
+        quantity: number = 1,
+        itemBuilder: ItemBuilder | null = null,
+        itemEstoqueBuilder: ItemEstoqueBuilder | null = null,
+    ): ItemEstoque[] {
+        const itemBuilderUtilizado = itemBuilder ?? new ItemBuilder();
+        const itemEstoqueBuilderUtilizado =
+            itemEstoqueBuilder ?? new ItemEstoqueBuilder();
+
+        let retorno: ItemEstoque[] = [];
+        for (let i = 0; i < quantity; i++) {
+            let id = inicioId + i;
+
+            let item = ItemBuilder.CriaItemTeste(id, itemBuilderUtilizado);
+
+            retorno.push(
+                itemEstoqueBuilderUtilizado
+                    .setItemInfo(item)
+                    .setQtd(1)
+                    .setValorMediaUnidade(5.5)
+                    .build(),
+            );
+        }
+
+        return retorno;
+    }
+}
 
 /*
 export enum eItemTipo {

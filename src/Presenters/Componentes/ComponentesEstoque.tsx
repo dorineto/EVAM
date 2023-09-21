@@ -42,10 +42,3 @@ export function MateriaPrimaRegistro({
         </View>
     );
 }
-
-// const style = StyleSheet.create({
-//     estoqueContainer: {
-//         display: 'flex',
-//         flexDirection: 'row',
-//     }
-// });

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {PropsWithChildren} from 'react';
-import {View, Text} from 'react-native';
+import {View, Text, Button} from 'react-native';
 import {ItemEstoque} from '../../Entidades/Item';
+import {useNavigation} from '@react-navigation/native';
+import type {EstoqueStackProps} from '../Screens/Estoque';
 
 export type EstoqueContainerProps = {
     title: string;
@@ -39,6 +41,41 @@ export function MateriaPrimaRegistro({
                 </Text>
             </View>
             <Text>{'\n\n'}</Text>
+        </View>
+    );
+}
+
+export function ButtonAdicionaEstoque(): React.JSX.Element {
+    const [expandido, setExpandido] = useState(false);
+
+    const {navigate} = useNavigation<EstoqueStackProps['navigation']>();
+
+    return (
+        <View>
+            {expandido && (
+                <View>
+                    <Button
+                        title="R"
+                        onPress={() => navigate('EstoqueGerenciamento')}
+                    />
+                    <Button
+                        title="P"
+                        onPress={() => navigate('EstoqueGerenciamento')}
+                    />
+                    <Button
+                        title="M"
+                        onPress={() => navigate('EstoqueGerenciamento')}
+                    />
+                    <Button
+                        title="C"
+                        onPress={() => navigate('EstoqueGerenciamento')}
+                    />
+                </View>
+            )}
+            <Button
+                title={expandido ? '-' : '+'}
+                onPress={() => setExpandido(estadoAtual => !estadoAtual)}
+            />
         </View>
     );
 }

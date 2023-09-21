@@ -92,6 +92,7 @@ function renderIconsBar({
         tabBarShowLabel: false,
         tabBarInactiveTintColor: '#AD79C2',
         headerShown: false,
+        tabBarHideOnKeyboard: true,
     };
 }
 

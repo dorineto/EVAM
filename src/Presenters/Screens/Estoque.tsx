@@ -1,13 +1,16 @@
-import {Text, ScrollView, View} from 'react-native';
+import {Text, ScrollView, Button} from 'react-native';
 import React from 'react';
 import {useContext} from 'react';
 import {
+    ButtonAdicionaEstoque,
     EstoqueContainer,
     MateriaPrimaRegistro,
 } from '../Componentes/ComponentesEstoque';
 import {useVisualizaEstoque} from '../Controlles/EstoqueController';
 import {CasoUso} from '../../App';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useNavigation} from '@react-navigation/native';
+import {EstoqueParamList, EstoqueStackProps} from '../Navigation/types';
 
 function EstoqueVisualizacao() {
     const casoUsoInit = useContext(CasoUso);
@@ -34,11 +37,14 @@ function EstoqueVisualizacao() {
                     );
                 })}
             </EstoqueContainer>
+            <ButtonAdicionaEstoque />
         </ScrollView>
     );
 }
 
-function EstoqueEdicao() {
+function EstoqueGerenciamento() {
+    const navigation = useNavigation<EstoqueStackProps['navigation']>();
+
     return (
         <ScrollView
             contentContainerStyle={{
@@ -49,12 +55,12 @@ function EstoqueEdicao() {
                 minWidth: '100%',
             }}>
             <Text style={{fontSize: 32}}>Estoque Edit</Text>
+            <Button title="Voltar" onPress={() => navigation.goBack()} />
         </ScrollView>
     );
 }
 
-const EstoqueStack = createNativeStackNavigator();
-
+const EstoqueStack = createNativeStackNavigator<EstoqueParamList>();
 function Estoque() {
     return (
         <EstoqueStack.Navigator
@@ -65,8 +71,8 @@ function Estoque() {
                 component={EstoqueVisualizacao}
             />
             <EstoqueStack.Screen
-                name="EstoqueEdicao"
-                component={EstoqueEdicao}
+                name="EstoqueGerenciamento"
+                component={EstoqueGerenciamento}
             />
         </EstoqueStack.Navigator>
     );

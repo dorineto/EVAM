@@ -4,10 +4,16 @@ import _ from 'lodash';
 export class Receita {
     private _ingredientes: ItemMensurado[];
     private _produz: ItemMensurado;
+    private _inclusao: string;
 
-    constructor(produz: ItemMensurado, ingredientes: ItemMensurado[]) {
+    constructor(
+        produz: ItemMensurado,
+        ingredientes: ItemMensurado[],
+        inclusao: Date,
+    ) {
         this._produz = produz;
         this._ingredientes = ingredientes;
+        this._inclusao = inclusao.toISOString();
     }
 
     adicionaIngredientes(...ingredientesAdicionados: ItemMensurado[]) {
@@ -28,5 +34,13 @@ export class Receita {
 
     get produz(): ItemMensurado {
         return _.cloneDeep(this._produz);
+    }
+
+    set inclusao(inclusao: Date) {
+        this._inclusao = inclusao.toISOString();
+    }
+
+    get inclusao() {
+        return new Date(this._inclusao);
     }
 }

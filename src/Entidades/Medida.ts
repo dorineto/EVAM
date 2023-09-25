@@ -9,6 +9,17 @@ export enum eMedida {
     miligrama = 8,
 }
 
+const listaMedidasIds: eMedida[] = [
+    eMedida.unidade,
+    eMedida.metro,
+    eMedida.centimetro,
+    eMedida.litro,
+    eMedida.mililitro,
+    eMedida.kilo,
+    eMedida.grama,
+    eMedida.miligrama,
+];
+
 export interface Medida {
     id: number;
     descricao: string;
@@ -55,4 +66,20 @@ export function getMedida(medida: eMedida): Medida {
     returnVal.abreviacao = abreviacaoMedida;
 
     return returnVal;
+}
+
+export type MedidaInfo = {
+    key: number;
+    value: string;
+};
+
+export function listMedidas(): MedidaInfo[] {
+    return listaMedidasIds.map(id => {
+        const medida = getMedida(id);
+
+        return {
+            key: medida.id,
+            value: medida.abreviacao,
+        };
+    });
 }

@@ -20,6 +20,8 @@ import {
     BottomTabNavigationOptions,
 } from '@react-navigation/bottom-tabs';
 
+import {Provider} from 'react-redux';
+
 import Dashboard from './Presenters/Screens/Dashboard';
 import Estoque from './Presenters/Screens/Estoque';
 import Vendas from './Presenters/Screens/Vendas';
@@ -32,12 +34,14 @@ import {
     faBoxesStacked,
     faReceipt,
     faGears,
+    faCaretDown,
 } from '@fortawesome/free-solid-svg-icons';
 import {View} from 'react-native';
 import {ItemCasoUso} from './CasosUsos/ItemCasoUso';
 import ItemRepositorioStub from './Data/ItemRepositorioStub';
+import {Store} from './Presenters/Slicers/Store';
 
-library.add(faChartPie, faBoxesStacked, faReceipt, faGears);
+library.add(faChartPie, faBoxesStacked, faReceipt, faGears, faCaretDown);
 
 const Tab = createBottomTabNavigator();
 
@@ -93,6 +97,7 @@ function renderIconsBar({
         tabBarInactiveTintColor: '#AD79C2',
         headerShown: false,
         tabBarHideOnKeyboard: true,
+        unmountOnBlur: true,
     };
 }
 
@@ -108,23 +113,29 @@ export const CasoUso = createContext<CasoUsoInit>(casoUsoInit);
 
 function App(): JSX.Element {
     return (
-        <CasoUso.Provider value={casoUsoInit}>
-            <SafeAreaProvider>
-                <NavigationContainer>
-                    <Tab.Navigator
-                        screenOptions={renderIconsBar}
-                        initialRouteName="Dashboard">
-                        <Tab.Screen name="Dashboard" component={Dashboard} />
-                        <Tab.Screen name="Estoque" component={Estoque} />
-                        <Tab.Screen name="Vendas" component={Vendas} />
-                        <Tab.Screen
-                            name="Configuracoes"
-                            component={Configuracoes}
-                        />
-                    </Tab.Navigator>
-                </NavigationContainer>
-            </SafeAreaProvider>
-        </CasoUso.Provider>
+        <Provider store={Store}>
+            <CasoUso.Provider value={casoUsoInit}>
+                <SafeAreaProvider>
+                    <NavigationContainer>
+                        <Tab.Navigator
+                            screenOptions={renderIconsBar}
+                            initialRouteName="Dashboard"
+                            backBehavior="history">
+                            <Tab.Screen
+                                name="Dashboard"
+                                component={Dashboard}
+                            />
+                            <Tab.Screen name="Estoque" component={Estoque} />
+                            <Tab.Screen name="Vendas" component={Vendas} />
+                            <Tab.Screen
+                                name="Configuracoes"
+                                component={Configuracoes}
+                            />
+                        </Tab.Navigator>
+                    </NavigationContainer>
+                </SafeAreaProvider>
+            </CasoUso.Provider>
+        </Provider>
     );
 }
 

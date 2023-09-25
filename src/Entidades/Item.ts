@@ -9,7 +9,7 @@ export interface Item {
     id: number;
     tipo: eItemTipo;
     descricao: string;
-    inclusao: Date;
+    inclusao: string;
 }
 
 export interface ItemMensurado {

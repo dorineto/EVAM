@@ -3,24 +3,26 @@ import {Item, ItemEstoque, eItemTipo} from '../src/Entidades/Item';
 import {Medida, eMedida, getMedida} from '../src/Entidades/Medida';
 import {ItemRepositorio} from '../src/Repositorios/ItemRepositorio';
 
-let itemRepositorioStub: ItemRepositorio = {
-    listaMateriasPrimas: jest.fn(async () => []),
-};
+function setupStubs(): [ItemRepositorio] {
+    return [
+        {
+            listaMateriasPrimas: jest.fn(async () => []),
+            buscaMateriaPrima: jest.fn(async (_: number) => null),
+            gravaMateriaPrima: jest.fn(async (_: ItemEstoque) => 0),
+            deletaMateriaPrima: jest.fn(async function (_: number) {}),
+        },
+    ];
+}
 
 // Reseta o itemRepositorioStub a cada teste
 describe('Quando listaMateriasPrimas', () => {
-    beforeEach(() => {
-        itemRepositorioStub = {
-            listaMateriasPrimas: jest.fn(async () => []),
-        };
-    });
-
     it.concurrent(
         'Caso retorne registros do repositorio então retorna os registros',
         async () => {
-            itemRepositorioStub.listaMateriasPrimas = jest.fn(async () =>
-                ItemEstoqueBuilder.CriaListaTeste(1, 5),
-            );
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.listaMateriasPrimas = async () =>
+                ItemEstoqueBuilder.CriaListaTeste(1, 5);
 
             let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
 
@@ -34,6 +36,8 @@ describe('Quando listaMateriasPrimas', () => {
     it.concurrent(
         'Caso não retorna registros do repositorio então retorna vazio',
         async () => {
+            const [itemRepositorioStub] = setupStubs();
+
             itemRepositorioStub.listaMateriasPrimas = async () => [];
 
             let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
@@ -44,6 +48,8 @@ describe('Quando listaMateriasPrimas', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
+            const [itemRepositorioStub] = setupStubs();
+
             itemRepositorioStub.listaMateriasPrimas = async function () {
                 throw new Error('Error repositorio esperado');
             };
@@ -57,11 +63,226 @@ describe('Quando listaMateriasPrimas', () => {
     );
 });
 
+describe('Quando buscaMateriaPrima', () => {
+    it.concurrent('Caso registro exista então retorna o registro', async () => {
+        const [itemRepositorioStub] = setupStubs();
+
+        const itemEstoqueTeste = ItemEstoqueBuilder.CriaItemTeste(1);
+
+        itemRepositorioStub.buscaMateriaPrima = async (_: number) =>
+            itemEstoqueTeste;
+
+        let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+        let retorno = await itemCasoUsoTest.buscaMateriaPrima(1);
+
+        let retornoEsperado = ItemEstoqueBuilder.CriaItemTeste(1);
+
+        expect(retorno).not.toBeNull();
+        expect(retorno).toEqual(retornoEsperado);
+        expect(retorno).not.toBe(itemEstoqueTeste);
+    });
+
+    it.concurrent('Caso registro não exista então retorna null', async () => {
+        const [itemRepositorioStub] = setupStubs();
+
+        itemRepositorioStub.buscaMateriaPrima = async (_: number) => null;
+
+        let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+        let retorno = await itemCasoUsoTest.buscaMateriaPrima(2);
+
+        expect(retorno).toBeNull();
+    });
+
+    it.concurrent('Caso passado ids invalidos retorna null', async () => {
+        const [itemRepositorioStub] = setupStubs();
+
+        itemRepositorioStub.buscaMateriaPrima = jest.fn(
+            async (_: number) => null,
+        );
+
+        let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+        // teste ids 0
+        let retorno = await itemCasoUsoTest.buscaMateriaPrima(0);
+        expect(retorno).toBeNull();
+        expect(itemRepositorioStub.buscaMateriaPrima).toBeCalledTimes(0);
+
+        // teste ids negativos
+        retorno = await itemCasoUsoTest.buscaMateriaPrima(-1);
+
+        expect(retorno).toBeNull();
+        expect(itemRepositorioStub.buscaMateriaPrima).toBeCalledTimes(0);
+    });
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.buscaMateriaPrima = async (_: number) => {
+                throw new Error();
+            };
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            await expect(() =>
+                itemCasoUsoTest.buscaMateriaPrima(1),
+            ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando gravaMateriaPrima', () => {
+    it.concurrent(
+        'Caso passado valores validos então grava e retorna o id',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.gravaMateriaPrima = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            const itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(0);
+
+            let retorno = await itemCasoUsoTest.gravaMateriaPrima(
+                itemEstoqueGrava,
+            );
+
+            const itemEstoqueEsperado = ItemEstoqueBuilder.CriaItemTeste(0);
+
+            expect(itemEstoqueGrava).toEqual(itemEstoqueEsperado);
+            expect(retorno).toEqual(1);
+            expect(itemRepositorioStub.gravaMateriaPrima).toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso passado valores invalidos então lança excessão',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.gravaMateriaPrima = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            async function assertLancaExcessaoValorInvalido(
+                itemGrava: ItemEstoque,
+            ) {
+                await expect(() =>
+                    itemCasoUsoTest.gravaMateriaPrima(itemGrava),
+                ).rejects.toThrow();
+
+                expect(itemRepositorioStub.gravaMateriaPrima).not.toBeCalled();
+            }
+
+            // Descricao item vazia
+            let itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(0);
+
+            itemEstoqueGrava.item.descricao = '';
+            await assertLancaExcessaoValorInvalido(itemEstoqueGrava);
+
+            // Qtd negativa
+            itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(0);
+
+            itemEstoqueGrava.qtd = -1;
+            await assertLancaExcessaoValorInvalido(itemEstoqueGrava);
+
+            // ValorMediaUnidade negativa
+            itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(0);
+
+            itemEstoqueGrava.valorMediaUnidade = -1;
+            await assertLancaExcessaoValorInvalido(itemEstoqueGrava);
+        },
+    );
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.gravaMateriaPrima = async (_: ItemEstoque) => {
+                throw new Error();
+            };
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            const itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(0);
+
+            await expect(() =>
+                itemCasoUsoTest.gravaMateriaPrima(itemEstoqueGrava),
+            ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando deletaMateriaPrima', () => {
+    it.concurrent(
+        'Caso passado valores validos então deleta registro',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.deletaMateriaPrima = jest.fn(async function (
+                _: number,
+            ) {});
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            await itemCasoUsoTest.deletaMateriaPrima(1);
+
+            expect(itemRepositorioStub.deletaMateriaPrima).toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso passe valores invalidos deve retornar sem chamar o repositorio',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.deletaMateriaPrima = jest.fn(
+                async (_: number) => {},
+            );
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            // Id seja 0
+            itemCasoUsoTest.deletaMateriaPrima(0);
+            expect(itemRepositorioStub.deletaMateriaPrima).not.toBeCalled();
+
+            // Id seja negativo
+            itemCasoUsoTest.deletaMateriaPrima(-1);
+            expect(itemRepositorioStub.deletaMateriaPrima).not.toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.deletaMateriaPrima = async (_: number) => {
+                throw new Error();
+            };
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            await expect(() =>
+                itemCasoUsoTest.deletaMateriaPrima(1),
+            ).rejects.toThrow();
+        },
+    );
+});
+
 class ItemBuilder {
     private _id: number = 0;
     private _tipo: eItemTipo = eItemTipo.MateriaPrima;
     private _descricao: string = '';
-    private _inclusao: Date = new Date('2023-09-20 14:00:00');
+    private _inclusao: string = new Date('2023-09-20 14:00:00').toISOString();
 
     setId(id: number): ItemBuilder {
         this._id = id;
@@ -79,7 +300,7 @@ class ItemBuilder {
     }
 
     setInclusao(inclusao: Date): ItemBuilder {
-        this._inclusao = inclusao;
+        this._inclusao = inclusao.toISOString();
         return this;
     }
 
@@ -112,7 +333,7 @@ class ItemBuilder {
 
             retorno.push(
                 itemBuilderUtilizado
-                    .setDescricao(`Teste Item {id}`)
+                    .setDescricao(`Teste Item ${id}`)
                     .setId(id)
                     .build(),
             );
@@ -193,31 +414,3 @@ class ItemEstoqueBuilder {
         return retorno;
     }
 }
-
-/*
-export enum eItemTipo {
-    MateriaPrima = 1,
-    Produto = 2,
-}
-
-export interface Item {
-    id: number;
-    tipo: eItemTipo;
-    descricao: string;
-    inclusao: Date;
-}
-
-export interface ItemMensurado {
-    item: Item;
-    medida: Medida;
-    qtd: number;
-}
-
-export interface ItemEstoque extends ItemMensurado {
-    valorMediaUnidade: number;
-}
-
-export interface ItemOrdem extends ItemMensurado {
-    valorTotal: number;
-}
-*/

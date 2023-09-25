@@ -8,11 +8,18 @@ export class OrdemVenda {
     private _itensVendidos: ItemOrdem[];
     private _cliente: Cliente;
     private _local: Local;
+    private _inclusao: string;
 
-    constructor(cliente: Cliente, local: Local, itensVendidos: ItemOrdem[]) {
+    constructor(
+        cliente: Cliente,
+        local: Local,
+        itensVendidos: ItemOrdem[],
+        inclusao: Date,
+    ) {
         this._cliente = cliente;
         this._local = local;
         this._itensVendidos = itensVendidos;
+        this._inclusao = inclusao.toISOString();
     }
 
     adicionaItems(...itemAdicionado: ItemOrdem[]) {
@@ -48,5 +55,13 @@ export class OrdemVenda {
             (total, atualVal) => total + atualVal.valorTotal,
             0,
         );
+    }
+
+    set inclusao(inclusao: Date) {
+        this._inclusao = inclusao.toISOString();
+    }
+
+    get inclusao() {
+        return new Date(this._inclusao);
     }
 }

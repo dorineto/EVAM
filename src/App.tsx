@@ -35,13 +35,31 @@ import {
     faReceipt,
     faGears,
     faCaretDown,
+    faBook,
+    faTags,
+    faBox,
+    faShoppingCart,
+    faPlus,
+    faMinus,
 } from '@fortawesome/free-solid-svg-icons';
 import {View} from 'react-native';
 import {ItemCasoUso} from './CasosUsos/ItemCasoUso';
 import ItemRepositorioStub from './Data/ItemRepositorioStub';
 import {Store} from './Presenters/Slicers/Store';
 
-library.add(faChartPie, faBoxesStacked, faReceipt, faGears, faCaretDown);
+library.add(
+    faChartPie,
+    faBoxesStacked,
+    faReceipt,
+    faGears,
+    faCaretDown,
+    faBook,
+    faTags,
+    faBox,
+    faShoppingCart,
+    faPlus,
+    faMinus,
+);
 
 const Tab = createBottomTabNavigator();
 

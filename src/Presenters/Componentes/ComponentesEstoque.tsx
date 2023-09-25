@@ -22,6 +22,7 @@ import {
 } from '../Controlles/EstoqueController';
 import {CasoUso} from '../../App';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import {IconProp} from '@fortawesome/fontawesome-svg-core';
 
 export type EstoqueContainerProps = {
     title: string;
@@ -32,6 +33,7 @@ const styleUtil = StyleSheet.create({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        gap: 10,
     },
     titleText: {
         fontSize: 22,
@@ -206,17 +208,86 @@ const styleItemRegistro = StyleSheet.create({
     },
 });
 
+type ButtonEstoqueFormProp = {
+    icon: IconProp;
+    title?: string;
+    onPress: () => void;
+};
+
+function ButtonEstoqueForm({
+    icon,
+    title,
+    onPress,
+}: ButtonEstoqueFormProp): React.JSX.Element {
+    return (
+        <TouchableOpacity onPress={onPress}>
+            <View style={[styleButtonEstoqueForm.containerButtonEstoqueForm]}>
+                {title && (
+                    <View
+                        style={[styleButtonEstoqueForm.titleButtonEstoqueForm]}>
+                        <Text
+                            style={[
+                                styleButtonEstoqueForm.titleButtonEstoqueForm,
+                                styleUtil.contentText,
+                            ]}>
+                            {title}
+                        </Text>
+                    </View>
+                )}
+                <View style={[styleButtonEstoqueForm.iconButtonEstoqueForm]}>
+                    <FontAwesomeIcon
+                        style={[styleButtonEstoqueForm.iconButtonEstoqueForm]}
+                        size={
+                            styleButtonEstoqueForm.iconButtonEstoqueForm
+                                .fontSize
+                        }
+                        icon={icon}
+                    />
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+}
+
+const styleButtonEstoqueForm = StyleSheet.create({
+    containerButtonEstoqueForm: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 5,
+    },
+    titleButtonEstoqueForm: {
+        backgroundColor: '#A972BE',
+        borderColor: '#9F68B4',
+        color: '#fff',
+        padding: 5,
+        borderRadius: 50,
+    },
+    iconButtonEstoqueForm: {
+        fontSize: 25,
+        padding: 10,
+        color: '#fff',
+        backgroundColor: '#A972BE',
+        borderColor: '#9F68B4',
+        borderWidth: 2,
+        borderRadius: 50,
+        fontWeight: 'bold',
+    },
+});
+
 export function ButtonAdicionaEstoque(): React.JSX.Element {
     const [expandido, setExpandido] = useState(false);
 
     const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
 
     return (
-        <View>
+        <View style={[styleUtil.alignCenter]}>
             {expandido && (
-                <View>
-                    <Button
-                        title="R"
+                <View style={[styleUtil.alignCenter]}>
+                    <ButtonEstoqueForm
+                        icon={['fas', 'book']}
+                        title="Receitas"
                         onPress={() =>
                             navigate('EstoqueGerenciamento', {
                                 componenteEstoqueTipo:
@@ -224,8 +295,9 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
                             })
                         }
                     />
-                    <Button
-                        title="P"
+                    <ButtonEstoqueForm
+                        icon={['fas', 'tags']}
+                        title="Produtos"
                         onPress={() =>
                             navigate('EstoqueGerenciamento', {
                                 componenteEstoqueTipo:
@@ -233,8 +305,9 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
                             })
                         }
                     />
-                    <Button
-                        title="M"
+                    <ButtonEstoqueForm
+                        icon={['fas', 'box']}
+                        title="Materias-primas"
                         onPress={() =>
                             navigate('EstoqueGerenciamento', {
                                 componenteEstoqueTipo:
@@ -242,8 +315,9 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
                             })
                         }
                     />
-                    <Button
-                        title="C"
+                    <ButtonEstoqueForm
+                        icon={['fas', 'cart-shopping']}
+                        title="Compras"
                         onPress={() =>
                             navigate('EstoqueGerenciamento', {
                                 componenteEstoqueTipo:
@@ -253,8 +327,8 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
                     />
                 </View>
             )}
-            <Button
-                title={expandido ? '-' : '+'}
+            <ButtonEstoqueForm
+                icon={expandido ? ['fas', 'minus'] : ['fas', 'plus']}
                 onPress={() => setExpandido(estadoAtual => !estadoAtual)}
             />
         </View>

@@ -41,7 +41,10 @@ function EstoqueVisualizacao() {
 
     return (
         <ScrollView
-            contentContainerStyle={[styleEstoqueVisualizacao.alignTopCenter, styleEstoqueVisualizacao.containerFillScreen]}>
+            contentContainerStyle={[
+                styleEstoqueVisualizacao.alignTopCenter,
+                styleEstoqueVisualizacao.containerFillScreen,
+            ]}>
             <EstoqueContainer title="Matérias-primas">
                 {estoqueRegistro.materiasPrimas.map(materiaPrima => {
                     return (

@@ -17,6 +17,7 @@ import {
     setFormularioMateriaPrima,
 } from '../Slicers/EstoqueSlice';
 import {useSelector} from 'react-redux';
+import _ from 'lodash';
 
 export interface EstoqueRegistro {
     materiasPrimas: ItemEstoque[];
@@ -78,7 +79,7 @@ export function useFormularioEstoque(
     function confirmaGravar() {
         navigation.navigate('EstoqueModalInfo', {
             mensagem: `Deseja ${
-                novoRegistro ? 'alterar' : 'adicionar novo'
+                novoRegistro ? 'adicionar novo' : 'alterar'
             } registro?`,
             tipo: eModalTipo.Aviso,
             redirecionaConfirma: 'EstoqueGerenciamento',
@@ -193,7 +194,7 @@ export function useFormularioMateriaPrima(
             );
         }
 
-        let itemEstoqueGrava: ItemEstoque = itemEstoque ?? {
+        let itemEstoqueGrava: ItemEstoque = _.cloneDeep(itemEstoque) ?? {
             item: {
                 id: 0,
                 descricao: '',
@@ -221,9 +222,6 @@ export function useFormularioMateriaPrima(
         };
 
         dispatch(setFormularioMateriaPrima(itemDispatch));
-
-        // setItemEstoque(itemEstoqueGrava);
-        // setItemEstoqueFormulario(traduzItemEstoqueFormulario(itemEstoqueGrava));
     }
 
     return [

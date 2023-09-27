@@ -10,6 +10,7 @@ import React from 'react';
 import {useContext} from 'react';
 import {
     ButtonAdicionaEstoque,
+    ButtonWithStyle,
     EstoqueContainer,
     EstoqueModalOpcoesCompra,
     EstoqueModalOpcoesMateriaPrima,
@@ -21,6 +22,7 @@ import {
     FormularioReceita,
     MateriaPrimaRegistro,
     eComponenteEstoqueTipo,
+    styleUtil,
 } from '../Componentes/ComponentesEstoque';
 import {useVisualizaEstoque} from '../Controlles/EstoqueController';
 import {CasoUso} from '../../App';
@@ -42,8 +44,9 @@ function EstoqueVisualizacao() {
     return (
         <ScrollView
             contentContainerStyle={[
-                styleEstoqueVisualizacao.alignTopCenter,
-                styleEstoqueVisualizacao.containerFillScreen,
+                styleScreenUtil.alignTopCenter,
+                styleScreenUtil.containerFillScreenHorizontal,
+                styleEstoqueVisualizacao.containerEstoqueVisualizacao,
             ]}>
             <EstoqueContainer title="Matérias-primas">
                 {estoqueRegistro.materiasPrimas.map(materiaPrima => {
@@ -61,15 +64,37 @@ function EstoqueVisualizacao() {
 }
 
 const styleEstoqueVisualizacao = StyleSheet.create({
+    containerEstoqueVisualizacao: {
+        gap: 20,
+        padding: 20,
+    },
+});
+
+export const styleScreenUtil = StyleSheet.create({
     containerFillScreen: {
         height: '100%',
+        width: '100%',
+    },
+    containerFillScreenHorizontal: {
         width: '100%',
     },
     alignTopCenter: {
         display: 'flex',
         justifyContent: 'flex-start',
         alignItems: 'center',
+        flex: 1,
     },
+    alignBottomCenter: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
+    alignCenter: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    backgroundOpaque: {backgroundColor: 'rgba(0, 0, 0, 0.3)'},
 });
 
 function EstoqueGerenciamento({
@@ -102,17 +127,22 @@ function EstoqueGerenciamento({
 
     return (
         <ScrollView
-            contentContainerStyle={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '100%',
-                minWidth: '100%',
-            }}>
+            contentContainerStyle={[
+                styleScreenUtil.alignTopCenter,
+                styleScreenUtil.containerFillScreen,
+                styleEstoqueGerenciamento.containerEstoqueGerenciamento,
+            ]}>
             {formulario}
         </ScrollView>
     );
 }
+
+const styleEstoqueGerenciamento = StyleSheet.create({
+    containerEstoqueGerenciamento: {
+        gap: 20,
+        padding: 20,
+    },
+});
 
 function EstoqueModalInfo({
     navigation,
@@ -121,18 +151,23 @@ function EstoqueModalInfo({
     },
 }: EstoqueModalInfoProps) {
     let titulo: string;
+    let tituloStyle: object;
     switch (tipo) {
         case eModalTipo.Sucesso:
             titulo = 'Sucesso';
+            tituloStyle = styleEstoqueModalInfo.titleSucesso;
             break;
         case eModalTipo.Aviso:
             titulo = 'Atenção';
+            tituloStyle = styleEstoqueModalInfo.titleAtencao;
             break;
         case eModalTipo.Info:
             titulo = 'Informativo';
+            tituloStyle = styleEstoqueModalInfo.titleInformativo;
             break;
         case eModalTipo.Erro:
             titulo = 'Erro';
+            tituloStyle = styleEstoqueModalInfo.titleErro;
             break;
         default:
             throw new Error('Tipo modal não identificado');
@@ -181,34 +216,91 @@ function EstoqueModalInfo({
 
     return (
         <View
-            style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '100%',
-                minWidth: '100%',
-                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            }}>
+            style={[
+                styleScreenUtil.alignCenter,
+                styleScreenUtil.containerFillScreen,
+                styleScreenUtil.backgroundOpaque,
+            ]}>
             <View
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: '#fff',
-                }}>
-                <Text style={{fontSize: 16}}>{titulo}</Text>
-                <Text>{mensagem}</Text>
-                <Button title="Confirmar" onPress={() => handlePress(false)} />
-                {tipo === eModalTipo.Aviso && (
-                    <Button
-                        title="Cancelar"
-                        onPress={() => handlePress(true)}
+                style={[
+                    styleScreenUtil.alignCenter,
+                    styleEstoqueModalInfo.containerModal,
+                ]}>
+                <Text
+                    style={[
+                        styleUtil.titleText,
+                        styleEstoqueModalInfo.titleModal,
+                        tituloStyle,
+                    ]}>
+                    {titulo}
+                </Text>
+                <View
+                    style={[
+                        styleUtil.alignCenter,
+                        styleEstoqueModalInfo.contentContainerModal,
+                    ]}>
+                    <Text
+                        style={[
+                            styleUtil.contentText,
+                            styleEstoqueModalInfo.messageModal,
+                        ]}>
+                        {mensagem}
+                    </Text>
+                    <ButtonWithStyle
+                        title="Confirmar"
+                        onPress={() => handlePress(false)}
+                        style={[styleUtil.button, styleUtil.actionButton]}
                     />
-                )}
+                    {tipo === eModalTipo.Aviso && (
+                        <ButtonWithStyle
+                            title="Cancelar"
+                            onPress={() => handlePress(true)}
+                            style={[styleUtil.button, styleUtil.cancelaButton]}
+                        />
+                    )}
+                </View>
             </View>
         </View>
     );
 }
+
+const styleEstoqueModalInfo = StyleSheet.create({
+    containerModal: {
+        backgroundColor: '#E2E2E2',
+        borderColor: '#D8D8D8',
+        borderWidth: 2,
+        borderRadius: 15,
+        padding: 20,
+        width: '80%',
+        gap: 10,
+    },
+    contentContainerModal: {
+        width: '90%',
+        gap: 10,
+    },
+    titleModal: {
+        width: '100%',
+        padding: 10,
+        borderRadius: 50,
+        color: '#fff',
+    },
+    titleAtencao: {
+        backgroundColor: '#E58298',
+    },
+    titleInformativo: {
+        backgroundColor: '#8E49A9',
+    },
+    titleSucesso: {
+        backgroundColor: '#BC8ECF',
+    },
+    titleErro: {
+        backgroundColor: '#D84061',
+    },
+    messageModal: {
+        textAlign: 'center',
+        textAlignVertical: 'center',
+    },
+});
 
 function EstoqueModalOpcoes({
     navigation: navigation,
@@ -246,14 +338,11 @@ function EstoqueModalOpcoes({
         <TouchableWithoutFeedback
             onPress={() => navigation.navigate('EstoqueVisualizacao')}>
             <View
-                style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    minHeight: '100%',
-                    minWidth: '100%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                }}>
+                style={[
+                    styleScreenUtil.alignBottomCenter,
+                    styleScreenUtil.containerFillScreen,
+                    styleScreenUtil.backgroundOpaque,
+                ]}>
                 {opcoesElement}
             </View>
         </TouchableWithoutFeedback>

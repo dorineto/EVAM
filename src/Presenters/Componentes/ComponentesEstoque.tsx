@@ -7,9 +7,11 @@ import {
     TouchableOpacity,
     TextInput,
     StyleSheet,
+    TouchableOpacityProps,
+    ScrollView,
 } from 'react-native';
 import {ItemEstoque} from '../../Entidades/Item';
-import {useNavigation} from '@react-navigation/native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
 import {Medida, MedidaInfo, eMedida, getMedida} from '../../Entidades/Medida';
 import {SelectList} from 'react-native-dropdown-select-list';
@@ -23,12 +25,13 @@ import {
 import {CasoUso} from '../../App';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {IconProp} from '@fortawesome/fontawesome-svg-core';
+import {styleScreenUtil} from '../Screens/Estoque';
 
 export type EstoqueContainerProps = {
     title: string;
 };
 
-const styleUtil = StyleSheet.create({
+export const styleUtil = StyleSheet.create({
     alignCenter: {
         display: 'flex',
         alignItems: 'center',
@@ -40,11 +43,32 @@ const styleUtil = StyleSheet.create({
         fontWeight: 'bold',
         lineHeight: 26.4,
         letterSpacing: -0.7,
+        textAlign: 'center',
+        textAlignVertical: 'center',
     },
     contentText: {
         fontSize: 16,
         letterSpacing: -1,
         lineHeight: 20.8,
+    },
+    button: {
+        width: '100%',
+        color: '#fff',
+        borderRadius: 50,
+        fontSize: 16,
+        letterSpacing: -1,
+        lineHeight: 20.8,
+        padding: 10,
+    },
+    cancelaButton: {
+        backgroundColor: '#D84061',
+        borderColor: '#CE3657',
+        borderWidth: 2,
+    },
+    actionButton: {
+        backgroundColor: '#B180C5',
+        borderColor: '#AF84C0',
+        borderWidth: 2,
     },
 });
 
@@ -65,13 +89,12 @@ export function EstoqueContainer({
                 ]}>
                 {title}
             </Text>
-            <View
-                style={[
-                    styleUtil.alignCenter,
+            <ScrollView
+                contentContainerStyle={[
                     styleEstoqueContainer.contentContainerEstoque,
                 ]}>
                 {children}
-            </View>
+            </ScrollView>
             <View
                 style={[
                     styleUtil.alignCenter,
@@ -95,7 +118,7 @@ const styleEstoqueContainer = StyleSheet.create({
         borderRadius: 15,
         padding: 10,
         gap: 20,
-        width: '80%',
+        width: '90%',
         borderColor: '#CFCFCF',
         borderWidth: 2,
     },
@@ -109,7 +132,6 @@ const styleEstoqueContainer = StyleSheet.create({
     },
     contentContainerEstoque: {
         padding: 10,
-        gap: 10,
         width: '100%',
     },
     expandButtonContainer: {
@@ -183,6 +205,7 @@ const styleItemRegistro = StyleSheet.create({
         gap: 15,
         width: '100%',
         borderRadius: 15,
+        marginBottom: 10,
     },
     descricaoRegistro: {
         paddingHorizontal: 15,
@@ -282,7 +305,14 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
     const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
 
     return (
-        <View style={[styleUtil.alignCenter]}>
+        <View
+            style={[
+                styleButtonAdicionaEstoque.containerButtonAdicionaEstoque,
+                styleUtil.alignCenter,
+                expandido
+                    ? styleButtonAdicionaEstoque.expandidoButtonAdicionaEstoque
+                    : styleButtonAdicionaEstoque.colapsadoButtonAdicionaEstoque,
+            ]}>
             {expandido && (
                 <View style={[styleUtil.alignCenter]}>
                     <ButtonEstoqueForm
@@ -334,6 +364,22 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
         </View>
     );
 }
+
+const styleButtonAdicionaEstoque = StyleSheet.create({
+    containerButtonAdicionaEstoque: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+    },
+    colapsadoButtonAdicionaEstoque: {
+        marginVertical: 30,
+        marginHorizontal: 78.5,
+    },
+    expandidoButtonAdicionaEstoque: {
+        marginVertical: 30,
+        marginHorizontal: 15,
+    },
+});
 
 export enum eComponenteEstoqueTipo {
     MateriaPrima = 'materia-prima',
@@ -431,6 +477,8 @@ function FormularioMateriaPrimaLoaded({
             valorMediaUnidadeStr: string,
         ) => {
             async function handleGravar() {
+                setAguardandoConfimacao(false);
+
                 let qtd = Number(
                     qtdStr.replaceAll('.', '').replace(',', '.').trim(),
                 );
@@ -451,7 +499,6 @@ function FormularioMateriaPrimaLoaded({
                         valorMediaUnidade: valorMediaUnidade,
                     });
 
-                    setAguardandoConfimacao(false);
                     displayMensagem(
                         'Foi gravado com sucesso',
                         eModalTipo.Sucesso,
@@ -479,22 +526,49 @@ function FormularioMateriaPrimaLoaded({
     }
 
     return (
-        <View>
-            <Text>{novoRegistro ? 'Adição' : 'Edição'} Matéria-prima</Text>
-            <View>
+        <View
+            style={[
+                styleUtil.alignCenter,
+                styleFormularioUtil.containerFormulario,
+            ]}>
+            <Text
+                style={[
+                    styleFormularioUtil.titleFormulario,
+                    styleUtil.titleText,
+                ]}>
+                {novoRegistro ? 'Adição' : 'Edição'} Matéria-prima
+            </Text>
+            <View
+                style={[
+                    styleUtil.alignCenter,
+                    styleFormularioUtil.inputContainerFormulario,
+                ]}>
                 <TextInput
                     placeholder="Nome matéria-prima"
                     value={descricaoInp}
                     onChangeText={setDescricao}
                     maxLength={50}
+                    style={[
+                        styleFormularioUtil.inputFormulario,
+                        styleUtil.contentText,
+                    ]}
                 />
-                <View>
+                <View
+                    style={[
+                        styleUtil.alignCenter,
+                        styleFormularioUtil.containerDropdownList,
+                    ]}>
                     <MaskInput
                         mask={QtdMask}
                         placeholder="Quantidade estoque"
                         value={qtdEstoqueInp}
                         onChangeText={setQtdEstoque}
                         keyboardType="numeric"
+                        style={[
+                            styleFormularioUtil.inputFormulario,
+                            styleUtil.contentText,
+                            styleFormularioUtil.inputSideDropdownList,
+                        ]}
                     />
                     <SelectList
                         setSelected={(val: number) => {
@@ -506,6 +580,10 @@ function FormularioMateriaPrimaLoaded({
                         )}
                         save="key"
                         search={false}
+                        dropdownStyles={styleFormularioUtil.inputDropdownList}
+                        boxStyles={styleFormularioUtil.inputDropdownList}
+                        dropdownTextStyles={styleUtil.contentText}
+                        inputStyles={styleUtil.contentText}
                     />
                 </View>
                 <MaskInput
@@ -518,25 +596,90 @@ function FormularioMateriaPrimaLoaded({
                         )
                     }
                     keyboardType="numeric"
+                    style={[
+                        styleFormularioUtil.inputFormulario,
+                        styleUtil.contentText,
+                    ]}
                 />
             </View>
-            <Button
-                title={novoRegistro ? 'Adicionar' : 'Gravar'}
-                onPress={() => {
-                    let mensagem = validaValores();
-                    if (mensagem.trim() !== '') {
-                        displayMensagem(mensagem, eModalTipo.Erro);
-                        return;
-                    }
+            <View
+                style={[
+                    styleUtil.alignCenter,
+                    styleFormularioUtil.buttonContainerFormulario,
+                ]}>
+                <ButtonWithStyle
+                    title={novoRegistro ? 'Adicionar' : 'Gravar'}
+                    onPress={() => {
+                        let mensagem = validaValores();
+                        if (mensagem.trim() !== '') {
+                            displayMensagem(mensagem, eModalTipo.Erro);
+                            return;
+                        }
 
-                    confirmaGravar();
-                    setAguardandoConfimacao(true);
-                }}
-            />
-            <Button title="Cancelar" onPress={cancelar} />
+                        confirmaGravar();
+                        setAguardandoConfimacao(true);
+                    }}
+                    style={[styleUtil.button, styleUtil.actionButton]}
+                />
+                <ButtonWithStyle
+                    title="Cancelar"
+                    onPress={cancelar}
+                    style={[styleUtil.button, styleUtil.cancelaButton]}
+                />
+            </View>
         </View>
     );
 }
+
+const styleFormularioUtil = StyleSheet.create({
+    containerFormulario: {
+        backgroundColor: '#E2E2E2',
+        borderColor: '#D8D8D8',
+        borderWidth: 2,
+        borderRadius: 15,
+        padding: 10,
+        minWidth: '90%', // Não sei, mas só respeita quando é minwidth, talvés depois pesquisar melhor o que está acontecendo
+    },
+    titleFormulario: {
+        backgroundColor: '#8E49A9',
+        borderRadius: 50,
+        padding: 10,
+        color: '#fff',
+        width: '100%',
+        textAlign: 'center',
+        textAlignVertical: 'center',
+    },
+    inputContainerFormulario: {
+        width: '90%',
+    },
+    inputFormulario: {
+        backgroundColor: '#F5F5F5',
+        borderColor: '#E7E7E7',
+        borderWidth: 2,
+        padding: 15,
+        borderRadius: 15,
+        width: '100%',
+    },
+    containerDropdownList: {
+        width: '100%',
+        flexDirection: 'row',
+    },
+    inputDropdownList: {
+        backgroundColor: '#F5F5F5',
+        borderColor: '#E7E7E7',
+        borderWidth: 2,
+        padding: 15,
+        borderRadius: 15,
+        flexGrow: 0.3,
+    },
+    inputSideDropdownList: {
+        width: 'auto',
+        flexGrow: 0.7,
+    },
+    buttonContainerFormulario: {
+        width: '90%',
+    },
+});
 
 export function FormularioMateriaPrima({
     id,
@@ -638,38 +781,33 @@ export function EstoqueModalOpcoesMateriaPrima({
     const casoUsoInit = useContext(CasoUso);
 
     const [deleta] = useDeletaMateriaPrima(casoUsoInit);
-    const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+    const natigation = useNavigation<EstoqueGerenciamentoProps['navigation']>();
 
     function editar() {
-        navigate('EstoqueGerenciamento', {
+        natigation.navigate('EstoqueGerenciamento', {
             componenteEstoqueTipo: eComponenteEstoqueTipo.MateriaPrima,
             id: id,
         });
     }
 
     function confimaExclusao() {
-        navigate('EstoqueModalInfo', {
+        natigation.navigate('EstoqueModalInfo', {
             tipo: eModalTipo.Aviso,
             mensagem: 'Deseja cancelar a adição do novo registro?',
             redirecionaConfirma: 'EstoqueModalOpcoes',
-            redirecionaCancela: 'EstoqueModalOpcoes',
+            redirecionaCancela: 'EstoqueVisualizacao',
         });
     }
 
     const trataExclui = useCallback(
-        (idExclui: number, deletar: boolean) => {
+        (idExclui: number) => {
             async function handleExclui() {
-                if (!deletar) {
-                    navigate('EstoqueVisualizacao');
-                    return;
-                }
-
                 try {
                     await deleta(idExclui);
-                    navigate('EstoqueVisualizacao');
+                    natigation.navigate('EstoqueVisualizacao');
                 } catch (e) {
                     if (e instanceof Error) {
-                        navigate('EstoqueModalInfo', {
+                        natigation.navigate('EstoqueModalInfo', {
                             tipo: eModalTipo.Erro,
                             mensagem: e.message,
                             redirecionaConfirma: 'EstoqueVisualizacao',
@@ -680,24 +818,64 @@ export function EstoqueModalOpcoesMateriaPrima({
 
             handleExclui();
         },
-        [deleta, navigate],
+        [deleta, natigation],
     );
 
     if (cancelado !== undefined) {
-        trataExclui(id, !cancelado);
+        trataExclui(id);
     }
 
     return (
         <View
-            style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#fff',
-            }}>
-            <Button title="Editar" onPress={editar} />
-            <Button title="Excluir" onPress={confimaExclusao} />
+            style={[
+                styleScreenUtil.alignCenter,
+                styleModalOpcoes.containerModalOption,
+            ]}>
+            <ButtonWithStyle
+                title="Editar"
+                onPress={editar}
+                style={[styleUtil.button, styleUtil.actionButton]}
+            />
+            <ButtonWithStyle
+                title="Excluir"
+                onPress={confimaExclusao}
+                style={[styleUtil.button, styleUtil.cancelaButton]}
+            />
         </View>
+    );
+}
+
+const styleModalOpcoes = StyleSheet.create({
+    containerModalOption: {
+        width: '100%',
+        backgroundColor: '#D5D5D5',
+        padding: 20,
+        gap: 10,
+        borderTopLeftRadius: 15,
+        borderTopRightRadius: 15,
+    },
+});
+
+export function ButtonWithStyle(
+    props: TouchableOpacityProps & {title: string},
+): React.JSX.Element {
+    return (
+        <TouchableOpacity {...props}>
+            <Text
+                style={[
+                    props.style,
+                    {
+                        textAlign: 'center',
+                        textAlignVertical: 'center',
+                        backgroundColor: undefined,
+                        borderColor: undefined,
+                        borderWidth: undefined,
+                        padding: undefined,
+                    },
+                ]}>
+                {props.title}
+            </Text>
+        </TouchableOpacity>
     );
 }
 

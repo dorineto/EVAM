@@ -1,7 +1,6 @@
 import {
     Text,
     ScrollView,
-    Button,
     View,
     TouchableWithoutFeedback,
     StyleSheet,
@@ -34,7 +33,7 @@ import {
     EstoqueParamList,
     eModalTipo,
 } from '../Navigation/types';
-import {CommonActions} from '@react-navigation/native';
+import {CommonActions, useFocusEffect} from '@react-navigation/native';
 
 function EstoqueVisualizacao() {
     const casoUsoInit = useContext(CasoUso);

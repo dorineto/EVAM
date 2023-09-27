@@ -115,7 +115,6 @@ function renderIconsBar({
         tabBarInactiveTintColor: '#AD79C2',
         headerShown: false,
         tabBarHideOnKeyboard: true,
-        unmountOnBlur: true,
     };
 }
 

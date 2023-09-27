@@ -48,6 +48,17 @@ const listaInicial = [
         qtd: 150,
         valorMediaUnidade: 0.2,
     },
+    {
+        item: {
+            id: 5,
+            descricao: 'Copo de vidro',
+            inclusao: new Date('2023-09-27 13:42:00').toISOString(),
+            tipo: eItemTipo.MateriaPrima,
+        },
+        medida: getMedida(eMedida.unidade),
+        qtd: 15,
+        valorMediaUnidade: 3.5,
+    },
 ];
 
 export default class ItemRepositorioStub implements ItemRepositorio {

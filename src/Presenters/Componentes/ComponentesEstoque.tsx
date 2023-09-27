@@ -76,11 +76,14 @@ export function EstoqueContainer({
     title,
     children,
 }: PropsWithChildren<EstoqueContainerProps>): React.JSX.Element {
+    const [expandido, setExpandido] = useState(false);
+
     return (
         <View
             style={[
                 styleUtil.alignCenter,
                 styleEstoqueContainer.containerEstoque,
+                expandido && styleEstoqueContainer.expandidoContainerEstoque,
             ]}>
             <Text
                 style={[
@@ -90,6 +93,7 @@ export function EstoqueContainer({
                 {title}
             </Text>
             <ScrollView
+                scrollEnabled={expandido}
                 contentContainerStyle={[
                     styleEstoqueContainer.contentContainerEstoque,
                 ]}>
@@ -99,8 +103,16 @@ export function EstoqueContainer({
                 style={[
                     styleUtil.alignCenter,
                     styleEstoqueContainer.expandButtonContainer,
+                    expandido &&
+                        styleEstoqueContainer.expandidoExpandButtonContainer,
                 ]}>
-                <TouchableOpacity style={styleEstoqueContainer.expandButton}>
+                <TouchableOpacity
+                    onPress={() => setExpandido(!expandido)}
+                    style={[
+                        styleEstoqueContainer.expandButton,
+                        expandido &&
+                            styleEstoqueContainer.expandidoExpandButton,
+                    ]}>
                     <FontAwesomeIcon
                         color={styleEstoqueContainer.expandButton.color}
                         size={styleEstoqueContainer.expandButton.fontSize}
@@ -121,6 +133,10 @@ const styleEstoqueContainer = StyleSheet.create({
         width: '90%',
         borderColor: '#CFCFCF',
         borderWidth: 2,
+        maxHeight: 350,
+    },
+    expandidoContainerEstoque: {
+        maxHeight: 500,
     },
     titleContainerEstoque: {
         backgroundColor: '#8E49A9',
@@ -135,7 +151,20 @@ const styleEstoqueContainer = StyleSheet.create({
         width: '100%',
     },
     expandButtonContainer: {
+        width: '107%',
+        position: 'absolute',
+        bottom: 0,
+        padding: 10,
+        backgroundColor: 'rgba(0,0,0,.6)',
+        borderBottomLeftRadius: 15,
+        borderBottomRightRadius: 15,
+    },
+    expandidoExpandButtonContainer: {
+        position: 'relative',
+        bottom: 'auto',
+        backgroundColor: undefined,
         width: '100%',
+        padding: 0,
     },
     expandButton: {
         color: '#fff',
@@ -143,6 +172,9 @@ const styleEstoqueContainer = StyleSheet.create({
         backgroundColor: '#A972BE',
         borderRadius: 100,
         padding: 5,
+    },
+    expandidoExpandButton: {
+        transform: [{rotateX: '180deg'}],
     },
 });
 
@@ -201,9 +233,11 @@ const styleItemRegistro = StyleSheet.create({
     containerRegistro: {
         display: 'flex',
         flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
         backgroundColor: '#BFAEC6',
         gap: 15,
-        width: '100%',
+        maxWidth: '100%',
         borderRadius: 15,
         marginBottom: 10,
     },
@@ -211,6 +245,7 @@ const styleItemRegistro = StyleSheet.create({
         paddingHorizontal: 15,
         paddingVertical: 10,
         flexGrow: 0.7,
+        maxWidth: '70%',
     },
     sideInfoContainerRegistro: {
         display: 'flex',

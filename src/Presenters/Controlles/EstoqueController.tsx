@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {ItemEstoque, eItemTipo} from '../../Entidades/Item';
 import {CasoUsoInit} from '../../App';
 import {
@@ -8,7 +8,7 @@ import {
     getMedida,
     listMedidas,
 } from '../../Entidades/Medida';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
 import {useAppDispatch} from '../Slicers/Store';
 import {
@@ -30,17 +30,31 @@ export function useVisualizaEstoque({
         materiasPrimas: [],
     });
 
-    useEffect(() => {
-        async function buscaInfoEstoque() {
-            const materiasPrimas = await itemCasoUso.listaMateriasPrimas();
+    useFocusEffect(
+        useCallback(() => {
+            async function buscaInfoEstoque() {
+                const materiasPrimas = await itemCasoUso.listaMateriasPrimas();
 
-            setEstoqueRegistro({
-                materiasPrimas: materiasPrimas,
-            });
-        }
+                setEstoqueRegistro({
+                    materiasPrimas: materiasPrimas,
+                });
+            }
 
-        buscaInfoEstoque();
-    }, [itemCasoUso]);
+            buscaInfoEstoque();
+        }, [itemCasoUso]),
+    );
+
+    // useEffect(() => {
+    //     async function buscaInfoEstoque() {
+    //         const materiasPrimas = await itemCasoUso.listaMateriasPrimas();
+
+    //         setEstoqueRegistro({
+    //             materiasPrimas: materiasPrimas,
+    //         });
+    //     }
+
+    //     buscaInfoEstoque();
+    // }, [itemCasoUso]);
 
     return [estoqueRegistro];
 }

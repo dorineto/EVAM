@@ -3,7 +3,7 @@ import type {RootState} from './Store';
 import {ItemEstoque} from '../../Entidades/Item';
 import {ItemEstoqueFormulario} from '../Controlles/EstoqueController';
 
-export interface FormularioMateriaPrima {
+export interface FormularioItemEstoque {
     itemEstoque: ItemEstoque | null;
     itemEstoqueFormulario: ItemEstoqueFormulario | null;
 }
@@ -11,7 +11,11 @@ export interface FormularioMateriaPrima {
 export const EstoqueSlice = createSlice({
     name: 'estoque',
     initialState: {
-        formularioMateriaPrima: <FormularioMateriaPrima>{
+        formularioMateriaPrima: <FormularioItemEstoque>{
+            itemEstoque: null,
+            itemEstoqueFormulario: null,
+        },
+        formularioProduto: <FormularioItemEstoque>{
             itemEstoque: null,
             itemEstoqueFormulario: null,
         },
@@ -20,12 +24,19 @@ export const EstoqueSlice = createSlice({
         setFormularioMateriaPrima: (state, action) => {
             state.formularioMateriaPrima = action.payload;
         },
+        setFormularioProduto: (state, action) => {
+            state.formularioProduto = action.payload;
+        },
     },
 });
 
-export const {setFormularioMateriaPrima} = EstoqueSlice.actions;
+export const {setFormularioMateriaPrima, setFormularioProduto} =
+    EstoqueSlice.actions;
 
 export const selectFormularioMateriaPrima = (state: RootState) =>
     state.estoque.formularioMateriaPrima;
+
+export const selectFormularioProduto = (state: RootState) =>
+    state.estoque.formularioProduto;
 
 export default EstoqueSlice.reducer;

@@ -12,49 +12,51 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
 import {useAppDispatch} from '../Slicers/Store';
 import {
-    FormularioMateriaPrima,
+    FormularioItemEstoque,
     selectFormularioMateriaPrima,
+    selectFormularioProduto,
     setFormularioMateriaPrima,
+    setFormularioProduto,
 } from '../Slicers/EstoqueSlice';
 import {useSelector} from 'react-redux';
 import _ from 'lodash';
+import {Receita} from '../../Entidades/Receita';
 
 export interface EstoqueRegistro {
     materiasPrimas: ItemEstoque[];
+    produtos: ItemEstoque[];
+    receitas: Receita[];
 }
 
 export function useVisualizaEstoque({
     itemCasoUso,
+    receitaCasoUso,
 }: CasoUsoInit): [EstoqueRegistro] {
     const [estoqueRegistro, setEstoqueRegistro] = useState<EstoqueRegistro>({
         materiasPrimas: [],
+        produtos: [],
+        receitas: [],
     });
 
     useFocusEffect(
         useCallback(() => {
             async function buscaInfoEstoque() {
-                const materiasPrimas = await itemCasoUso.listaMateriasPrimas();
+                const [materiasPrimas, produtos, receitas] = await Promise.all([
+                    itemCasoUso.listaMateriasPrimas(),
+                    itemCasoUso.listaProdutos(),
+                    receitaCasoUso.listaReceitas(),
+                ]);
 
                 setEstoqueRegistro({
                     materiasPrimas: materiasPrimas,
+                    produtos: produtos,
+                    receitas: receitas,
                 });
             }
 
             buscaInfoEstoque();
-        }, [itemCasoUso]),
+        }, [itemCasoUso, receitaCasoUso]),
     );
-
-    // useEffect(() => {
-    //     async function buscaInfoEstoque() {
-    //         const materiasPrimas = await itemCasoUso.listaMateriasPrimas();
-
-    //         setEstoqueRegistro({
-    //             materiasPrimas: materiasPrimas,
-    //         });
-    //     }
-
-    //     buscaInfoEstoque();
-    // }, [itemCasoUso]);
 
     return [estoqueRegistro];
 }
@@ -114,6 +116,16 @@ export function useFormularioEstoque(
     return [cancelar, confirmaGravar, displayMensagem, listaMedidasInfo];
 }
 
+function traduzItemEstoqueFormulario(item: ItemEstoque): ItemEstoqueFormulario {
+    return {
+        id: item.item.id,
+        descricao: item.item.descricao,
+        medida: item.medida,
+        qtd: item.qtd,
+        valorMediaUnidade: item.valorMediaUnidade,
+    };
+}
+
 export type UseFormularioMateriaPrimaRet = [
     ...useFormularioEstoqueRet,
     ItemEstoqueFormulario | null,
@@ -138,17 +150,17 @@ export function useFormularioMateriaPrima(
 
     const [loading, setLoading] = useState(true);
 
-    function traduzItemEstoqueFormulario(
-        item: ItemEstoque,
-    ): ItemEstoqueFormulario {
-        return {
-            id: item.item.id,
-            descricao: item.item.descricao,
-            medida: item.medida,
-            qtd: item.qtd,
-            valorMediaUnidade: item.valorMediaUnidade,
-        };
-    }
+    // function traduzItemEstoqueFormulario(
+    //     item: ItemEstoque,
+    // ): ItemEstoqueFormulario {
+    //     return {
+    //         id: item.item.id,
+    //         descricao: item.item.descricao,
+    //         medida: item.medida,
+    //         qtd: item.qtd,
+    //         valorMediaUnidade: item.valorMediaUnidade,
+    //     };
+    // }
 
     useEffect(() => {
         async function buscaMateriaPrima() {
@@ -178,7 +190,7 @@ export function useFormularioMateriaPrima(
                 return;
             }
 
-            let itemDispatch: FormularioMateriaPrima = {
+            let itemDispatch: FormularioItemEstoque = {
                 itemEstoque: itemEstoqueBuscado,
                 itemEstoqueFormulario:
                     traduzItemEstoqueFormulario(itemEstoqueBuscado),
@@ -229,7 +241,7 @@ export function useFormularioMateriaPrima(
             itemEstoqueGrava,
         );
 
-        let itemDispatch: FormularioMateriaPrima = {
+        let itemDispatch: FormularioItemEstoque = {
             itemEstoque: itemEstoqueGrava,
             itemEstoqueFormulario:
                 traduzItemEstoqueFormulario(itemEstoqueGrava),
@@ -256,6 +268,135 @@ export function useDeletaMateriaPrima({
 }: CasoUsoInit): useDeletaEstoque {
     async function deleta(id: number) {
         itemCasoUso.deletaMateriaPrima(id);
+    }
+
+    return [deleta];
+}
+
+export type UseFormularioProdutoRet = [
+    ...useFormularioEstoqueRet,
+    ItemEstoqueFormulario | null,
+    (itemVisualizacao: ItemEstoqueFormulario) => Promise<void>,
+    boolean,
+];
+
+export function useFormularioProduto(
+    {itemCasoUso}: CasoUsoInit,
+    id?: number,
+): UseFormularioProdutoRet {
+    const novoRegistro = (id ?? 0) <= 0;
+
+    const [cancelar, confirmaGravar, displayMensagem, listaMedidasInfo] =
+        useFormularioEstoque(novoRegistro);
+
+    const dispatch = useAppDispatch();
+
+    const {itemEstoque, itemEstoqueFormulario} = useSelector(
+        selectFormularioProduto,
+    );
+
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function buscaProduto() {
+            if (novoRegistro) {
+                setLoading(false);
+                dispatch(
+                    setFormularioProduto({
+                        itemEstoque: null,
+                        itemEstoqueFormulario: null,
+                    }),
+                );
+                return;
+            }
+
+            const itemEstoqueBuscado = await itemCasoUso.buscaProduto(id ?? 0);
+
+            if (!itemEstoqueBuscado) {
+                setLoading(false);
+                dispatch(
+                    setFormularioProduto({
+                        itemEstoque: null,
+                        itemEstoqueFormulario: null,
+                    }),
+                );
+                return;
+            }
+
+            let itemDispatch: FormularioItemEstoque = {
+                itemEstoque: itemEstoqueBuscado,
+                itemEstoqueFormulario:
+                    traduzItemEstoqueFormulario(itemEstoqueBuscado),
+            };
+
+            dispatch(setFormularioProduto(itemDispatch));
+            setLoading(false);
+        }
+
+        buscaProduto();
+    }, [id, itemCasoUso, novoRegistro, dispatch]);
+
+    async function gravaItemEstoque(itemVisualizacao: ItemEstoqueFormulario) {
+        if (itemVisualizacao.descricao.trim() === '') {
+            throw new Error('Informe valor para a nome da produto');
+        }
+
+        if (itemVisualizacao.qtd < 0) {
+            throw new Error(
+                'O valor informado para a quantidade em estoque não pode ser negativa',
+            );
+        }
+
+        if (itemVisualizacao.valorMediaUnidade < 0) {
+            throw new Error(
+                'O valor informado para a média de preço não pode ser negativa',
+            );
+        }
+
+        let itemEstoqueGrava: ItemEstoque = _.cloneDeep(itemEstoque) ?? {
+            item: {
+                id: 0,
+                descricao: '',
+                inclusao: new Date().toISOString(),
+                tipo: eItemTipo.Produto,
+            },
+            medida: getMedida(eMedida.unidade),
+            qtd: 0,
+            valorMediaUnidade: 0,
+        };
+
+        itemEstoqueGrava.item.descricao = itemVisualizacao.descricao;
+        itemEstoqueGrava.medida = itemVisualizacao.medida;
+        itemEstoqueGrava.qtd = itemVisualizacao.qtd;
+        itemEstoqueGrava.valorMediaUnidade = itemVisualizacao.valorMediaUnidade;
+
+        itemEstoqueGrava.item.id = await itemCasoUso.gravaProduto(
+            itemEstoqueGrava,
+        );
+
+        let itemDispatch: FormularioItemEstoque = {
+            itemEstoque: itemEstoqueGrava,
+            itemEstoqueFormulario:
+                traduzItemEstoqueFormulario(itemEstoqueGrava),
+        };
+
+        dispatch(setFormularioProduto(itemDispatch));
+    }
+
+    return [
+        cancelar,
+        confirmaGravar,
+        displayMensagem,
+        listaMedidasInfo,
+        itemEstoqueFormulario,
+        gravaItemEstoque,
+        loading,
+    ];
+}
+
+export function useDeletaProduto({itemCasoUso}: CasoUsoInit): useDeletaEstoque {
+    async function deleta(id: number) {
+        itemCasoUso.deletaProduto(id);
     }
 
     return [deleta];

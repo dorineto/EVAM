@@ -11,7 +11,7 @@ import {
     ScrollView,
 } from 'react-native';
 import {ItemEstoque} from '../../Entidades/Item';
-import {CommonActions, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
 import {Medida, MedidaInfo, eMedida, getMedida} from '../../Entidades/Medida';
 import {SelectList} from 'react-native-dropdown-select-list';
@@ -20,12 +20,15 @@ import {QtdMask} from './Utils';
 import {
     ItemEstoqueFormulario,
     useDeletaMateriaPrima,
+    useDeletaProduto,
     useFormularioMateriaPrima,
+    useFormularioProduto,
 } from '../Controlles/EstoqueController';
 import {CasoUso} from '../../App';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {IconProp} from '@fortawesome/fontawesome-svg-core';
 import {styleScreenUtil} from '../Screens/Estoque';
+import {Receita} from '../../Entidades/Receita';
 
 export type EstoqueContainerProps = {
     title: string;
@@ -72,6 +75,44 @@ export const styleUtil = StyleSheet.create({
     },
 });
 
+export type ButtonExpandeProps = {
+    onPress?: () => void;
+    expandido?: boolean;
+};
+
+export function ButtonExpande({
+    onPress,
+    expandido,
+}: ButtonExpandeProps): React.JSX.Element {
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            style={[
+                styleButtonExpand.expandButton,
+                (expandido ?? false) && styleButtonExpand.expandidoExpandButton,
+            ]}>
+            <FontAwesomeIcon
+                color={styleButtonExpand.expandButton.color}
+                size={styleButtonExpand.expandButton.fontSize}
+                icon={['fas', 'caret-down']}
+            />
+        </TouchableOpacity>
+    );
+}
+
+const styleButtonExpand = StyleSheet.create({
+    expandButton: {
+        color: '#fff',
+        fontSize: 25,
+        backgroundColor: '#A972BE',
+        borderRadius: 100,
+        padding: 5,
+    },
+    expandidoExpandButton: {
+        transform: [{rotateX: '180deg'}],
+    },
+});
+
 export function EstoqueContainer({
     title,
     children,
@@ -106,7 +147,7 @@ export function EstoqueContainer({
                     expandido &&
                         styleEstoqueContainer.expandidoExpandButtonContainer,
                 ]}>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     onPress={() => setExpandido(!expandido)}
                     style={[
                         styleEstoqueContainer.expandButton,
@@ -118,7 +159,11 @@ export function EstoqueContainer({
                         size={styleEstoqueContainer.expandButton.fontSize}
                         icon={['fas', 'caret-down']}
                     />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+                <ButtonExpande
+                    onPress={() => setExpandido(!expandido)}
+                    expandido={expandido}
+                />
             </View>
         </View>
     );
@@ -165,16 +210,6 @@ const styleEstoqueContainer = StyleSheet.create({
         backgroundColor: undefined,
         width: '100%',
         padding: 0,
-    },
-    expandButton: {
-        color: '#fff',
-        fontSize: 25,
-        backgroundColor: '#A972BE',
-        borderRadius: 100,
-        padding: 5,
-    },
-    expandidoExpandButton: {
-        transform: [{rotateX: '180deg'}],
     },
 });
 
@@ -225,6 +260,86 @@ export function MateriaPrimaRegistro({
                     {materiaPrima.medida.abreviacao}
                 </Text>
             </View>
+        </TouchableOpacity>
+    );
+}
+
+export type ProdutoRegistroProp = {
+    produto: ItemEstoque;
+};
+
+export function ProdutoRegistro({
+    produto,
+}: ProdutoRegistroProp): React.JSX.Element {
+    const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+
+    function opcoes() {
+        navigate('EstoqueModalOpcoes', {
+            tipo: eComponenteEstoqueTipo.Produto,
+            id: produto.item.id,
+        });
+    }
+
+    return (
+        <TouchableOpacity
+            onLongPress={opcoes}
+            style={styleItemRegistro.containerRegistro}>
+            <Text
+                style={[
+                    styleItemRegistro.descricaoRegistro,
+                    styleUtil.contentText,
+                ]}>
+                {produto.item.descricao}
+            </Text>
+            <View style={styleItemRegistro.sideInfoContainerRegistro}>
+                <Text
+                    style={[
+                        styleItemRegistro.badgeValorRegistro,
+                        styleUtil.contentText,
+                    ]}>
+                    R$ {produto.valorMediaUnidade.toFixed(2).replace('.', ',')}
+                </Text>
+                <Text
+                    style={[
+                        styleItemRegistro.quantidadeRegistro,
+                        styleUtil.contentText,
+                    ]}>
+                    {produto.qtd.toString().replace('.', ',')}{' '}
+                    {produto.medida.abreviacao}
+                </Text>
+            </View>
+        </TouchableOpacity>
+    );
+}
+
+export type ReceitaRegistroProp = {
+    receita: Receita;
+};
+
+export function ReceitaRegistro({
+    receita,
+}: ReceitaRegistroProp): React.JSX.Element {
+    const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+
+    function opcoes() {
+        navigate('EstoqueModalOpcoes', {
+            tipo: eComponenteEstoqueTipo.Receita,
+            id: receita.id,
+        });
+    }
+
+    return (
+        <TouchableOpacity
+            onLongPress={opcoes}
+            style={styleItemRegistro.containerRegistro}>
+            <ButtonExpande />
+            <Text
+                style={[
+                    styleItemRegistro.descricaoRegistro,
+                    styleUtil.contentText,
+                ]}>
+                {receita.descricao}
+            </Text>
         </TouchableOpacity>
     );
 }
@@ -407,11 +522,11 @@ const styleButtonAdicionaEstoque = StyleSheet.create({
         right: 0,
     },
     colapsadoButtonAdicionaEstoque: {
-        marginVertical: 30,
+        marginVertical: 50,
         marginHorizontal: 78.5,
     },
     expandidoButtonAdicionaEstoque: {
-        marginVertical: 30,
+        marginVertical: 50,
         marginHorizontal: 15,
     },
 });
@@ -751,20 +866,275 @@ export function FormularioMateriaPrima({
     );
 }
 
-export function FormularioProduto({
-    id,
-}: FormularioEstoqueProp): React.JSX.Element {
-    const navigation = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+interface FormularioProdutoLoadedProp extends FormularioEstoqueProp {
+    itemEstoque: ItemEstoqueFormulario | null;
+    gravaItemEstoque: (
+        itemVisualizacao: ItemEstoqueFormulario,
+    ) => Promise<void>;
+    cancelar: () => void;
+    confirmaGravar: () => void;
+    displayMensagem: (mensagem: string, tipo: eModalTipo) => void;
+    listaMedidasInfo: MedidaInfo[];
+    cancelado?: boolean;
+}
 
-    function handleCancelar() {
-        navigation.goBack();
+function FormularioProdutoLoaded({
+    itemEstoque,
+    gravaItemEstoque,
+    cancelar,
+    confirmaGravar,
+    displayMensagem,
+    listaMedidasInfo,
+    cancelado,
+}: FormularioProdutoLoadedProp) {
+    let novoRegistro = (itemEstoque?.id ?? 0) === 0;
+
+    const [medidaInp, setMedida] = useState(
+        itemEstoque?.medida ?? getMedida(eMedida.unidade),
+    );
+    const [medValorInp, setMedValor] = useState(
+        itemEstoque?.valorMediaUnidade.toFixed(2).replace('.', ',') ?? '',
+    );
+    const [qtdEstoqueInp, setQtdEstoque] = useState(
+        itemEstoque?.qtd.toFixed(2).replace('.', ',') ?? '',
+    );
+    const [descricaoInp, setDescricao] = useState(itemEstoque?.descricao ?? '');
+
+    const [aguardandoConfimacao, setAguardandoConfimacao] = useState(false);
+
+    function validaValores() {
+        if (descricaoInp.trim() === '') {
+            return 'Informe valor para a nome do produto';
+        }
+
+        if (qtdEstoqueInp.trim() === '') {
+            return 'Informe valor para a quantidade em estoque';
+        }
+
+        if (medValorInp.trim() === '') {
+            return 'Informe valor para a média de preço';
+        }
+
+        let qtd = Number(
+            qtdEstoqueInp.replaceAll('.', '').replace(',', '.').trim(),
+        );
+
+        if (Number.isNaN(qtd)) {
+            return 'O valor informado para a quantidade em estoque é invalido';
+        }
+
+        if (Number.isNaN(qtd)) {
+            return 'O valor informado para a quantidade em estoque é invalido';
+        }
+
+        let valorMediaUnidade = Number(
+            medValorInp
+                .replaceAll(/\.|R\$/g, '')
+                .replaceAll(',', '.')
+                .trim(),
+        );
+
+        if (Number.isNaN(valorMediaUnidade)) {
+            return 'O valor informado para a média de preço é invalido';
+        }
+
+        return '';
+    }
+
+    const trataGravar = useCallback(
+        (
+            id: number,
+            descricao: string,
+            medida: Medida,
+            qtdStr: string,
+            valorMediaUnidadeStr: string,
+        ) => {
+            async function handleGravar() {
+                setAguardandoConfimacao(false);
+
+                let qtd = Number(
+                    qtdStr.replaceAll('.', '').replace(',', '.').trim(),
+                );
+
+                let valorMediaUnidade = Number(
+                    valorMediaUnidadeStr
+                        .replaceAll(/\.|R\$/g, '')
+                        .replaceAll(',', '.')
+                        .trim(),
+                );
+
+                try {
+                    await gravaItemEstoque({
+                        id: id,
+                        descricao: descricao,
+                        medida: medida,
+                        qtd: qtd,
+                        valorMediaUnidade: valorMediaUnidade,
+                    });
+
+                    displayMensagem(
+                        'Foi gravado com sucesso',
+                        eModalTipo.Sucesso,
+                    );
+                } catch (e) {
+                    if (e instanceof Error) {
+                        displayMensagem(e.message, eModalTipo.Erro);
+                    }
+                }
+            }
+
+            handleGravar();
+        },
+        [displayMensagem, gravaItemEstoque],
+    );
+
+    if (aguardandoConfimacao && cancelado !== undefined && !cancelado) {
+        trataGravar(
+            itemEstoque?.id ?? 0,
+            descricaoInp,
+            medidaInp,
+            qtdEstoqueInp,
+            medValorInp,
+        );
     }
 
     return (
+        <View
+            style={[
+                styleUtil.alignCenter,
+                styleFormularioUtil.containerFormulario,
+            ]}>
+            <Text
+                style={[
+                    styleFormularioUtil.titleFormulario,
+                    styleUtil.titleText,
+                ]}>
+                {novoRegistro ? 'Adição' : 'Edição'} Produto
+            </Text>
+            <View
+                style={[
+                    styleUtil.alignCenter,
+                    styleFormularioUtil.inputContainerFormulario,
+                ]}>
+                <TextInput
+                    placeholder="Nome Produto"
+                    value={descricaoInp}
+                    onChangeText={setDescricao}
+                    maxLength={50}
+                    style={[
+                        styleFormularioUtil.inputFormulario,
+                        styleUtil.contentText,
+                    ]}
+                />
+                <View
+                    style={[
+                        styleUtil.alignCenter,
+                        styleFormularioUtil.containerDropdownList,
+                    ]}>
+                    <MaskInput
+                        mask={QtdMask}
+                        placeholder="Quantidade estoque"
+                        value={qtdEstoqueInp}
+                        onChangeText={setQtdEstoque}
+                        keyboardType="numeric"
+                        style={[
+                            styleFormularioUtil.inputFormulario,
+                            styleUtil.contentText,
+                            styleFormularioUtil.inputSideDropdownList,
+                        ]}
+                    />
+                    <SelectList
+                        setSelected={(val: number) => {
+                            setMedida(getMedida(val));
+                        }}
+                        data={listaMedidasInfo}
+                        defaultOption={listaMedidasInfo.find(
+                            lmi => lmi.key === (medidaInp?.id ?? 1),
+                        )}
+                        save="key"
+                        search={false}
+                        dropdownStyles={styleFormularioUtil.inputDropdownList}
+                        boxStyles={styleFormularioUtil.inputDropdownList}
+                        dropdownTextStyles={styleUtil.contentText}
+                        inputStyles={styleUtil.contentText}
+                    />
+                </View>
+                <MaskInput
+                    mask={Masks.BRL_CURRENCY}
+                    placeholder={`Média preço por ${medidaInp.descricao}`}
+                    value={medValorInp}
+                    onChangeText={maskedValue =>
+                        setMedValor(
+                            maskedValue.trim() !== 'R$' ? maskedValue : '',
+                        )
+                    }
+                    keyboardType="numeric"
+                    style={[
+                        styleFormularioUtil.inputFormulario,
+                        styleUtil.contentText,
+                    ]}
+                />
+            </View>
+            <View
+                style={[
+                    styleUtil.alignCenter,
+                    styleFormularioUtil.buttonContainerFormulario,
+                ]}>
+                <ButtonWithStyle
+                    title={novoRegistro ? 'Adicionar' : 'Gravar'}
+                    onPress={() => {
+                        let mensagem = validaValores();
+                        if (mensagem.trim() !== '') {
+                            displayMensagem(mensagem, eModalTipo.Erro);
+                            return;
+                        }
+
+                        confirmaGravar();
+                        setAguardandoConfimacao(true);
+                    }}
+                    style={[styleUtil.button, styleUtil.actionButton]}
+                />
+                <ButtonWithStyle
+                    title="Cancelar"
+                    onPress={cancelar}
+                    style={[styleUtil.button, styleUtil.cancelaButton]}
+                />
+            </View>
+        </View>
+    );
+}
+
+export function FormularioProduto({
+    id,
+    cancelado,
+}: FormularioEstoqueProp): React.JSX.Element {
+    const casoUsoInit = useContext(CasoUso);
+
+    const [
+        cancelar,
+        confirmaGravar,
+        displayMensagem,
+        listaMedidasInfo,
+        itemEstoque,
+        gravaItemEstoque,
+        loading,
+    ] = useFormularioProduto(casoUsoInit, id);
+
+    return (
         <View>
-            <Text>{id ? 'Edição' : 'Adição'} Produto</Text>
-            <View />
-            <Button title="Cancelar" onPress={handleCancelar} />
+            {!loading ? (
+                <FormularioProdutoLoaded
+                    itemEstoque={itemEstoque}
+                    gravaItemEstoque={gravaItemEstoque}
+                    cancelar={cancelar}
+                    confirmaGravar={confirmaGravar}
+                    displayMensagem={displayMensagem}
+                    listaMedidasInfo={listaMedidasInfo}
+                    cancelado={cancelado}
+                />
+            ) : (
+                <Text>loading</Text>
+            )}
         </View>
     );
 }
@@ -828,7 +1198,7 @@ export function EstoqueModalOpcoesMateriaPrima({
     function confimaExclusao() {
         natigation.navigate('EstoqueModalInfo', {
             tipo: eModalTipo.Aviso,
-            mensagem: 'Deseja cancelar a adição do novo registro?',
+            mensagem: 'Deseja excluir o registro selecionado?',
             redirecionaConfirma: 'EstoqueModalOpcoes',
             redirecionaCancela: 'EstoqueVisualizacao',
         });
@@ -918,27 +1288,69 @@ export function EstoqueModalOpcoesProduto({
     id,
     cancelado,
 }: EstoqueModalOpcoesProp): React.JSX.Element {
-    const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+    const casoUsoInit = useContext(CasoUso);
+
+    const [deleta] = useDeletaProduto(casoUsoInit);
+    const natigation = useNavigation<EstoqueGerenciamentoProps['navigation']>();
 
     function editar() {
-        navigate('EstoqueGerenciamento', {
+        natigation.navigate('EstoqueGerenciamento', {
             componenteEstoqueTipo: eComponenteEstoqueTipo.Produto,
             id: id,
         });
     }
 
-    function excluir() {}
+    function confimaExclusao() {
+        natigation.navigate('EstoqueModalInfo', {
+            tipo: eModalTipo.Aviso,
+            mensagem: 'Deseja excluir o registro selecionado?',
+            redirecionaConfirma: 'EstoqueModalOpcoes',
+            redirecionaCancela: 'EstoqueVisualizacao',
+        });
+    }
+
+    const trataExclui = useCallback(
+        (idExclui: number) => {
+            async function handleExclui() {
+                try {
+                    await deleta(idExclui);
+                    natigation.navigate('EstoqueVisualizacao');
+                } catch (e) {
+                    if (e instanceof Error) {
+                        natigation.navigate('EstoqueModalInfo', {
+                            tipo: eModalTipo.Erro,
+                            mensagem: e.message,
+                            redirecionaConfirma: 'EstoqueVisualizacao',
+                        });
+                    }
+                }
+            }
+
+            handleExclui();
+        },
+        [deleta, natigation],
+    );
+
+    if (cancelado !== undefined) {
+        trataExclui(id);
+    }
 
     return (
         <View
-            style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#fff',
-            }}>
-            <Button title="Editar" onPress={editar} />
-            <Button title="Excluir" onPress={excluir} />
+            style={[
+                styleScreenUtil.alignCenter,
+                styleModalOpcoes.containerModalOption,
+            ]}>
+            <ButtonWithStyle
+                title="Editar"
+                onPress={editar}
+                style={[styleUtil.button, styleUtil.actionButton]}
+            />
+            <ButtonWithStyle
+                title="Excluir"
+                onPress={confimaExclusao}
+                style={[styleUtil.button, styleUtil.cancelaButton]}
+            />
         </View>
     );
 }

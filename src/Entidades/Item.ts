@@ -22,6 +22,10 @@ export interface ItemEstoque extends ItemMensurado {
     valorMediaUnidade: number;
 }
 
+export interface ItemReceita extends ItemMensurado {
+    valorMediaUnidade: number;
+}
+
 export interface ItemOrdem extends ItemMensurado {
     valorTotal: number;
 }

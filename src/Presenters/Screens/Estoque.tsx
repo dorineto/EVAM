@@ -4,6 +4,8 @@ import {
     View,
     TouchableWithoutFeedback,
     StyleSheet,
+    Button,
+    useWindowDimensions,
 } from 'react-native';
 import React from 'react';
 import {useContext} from 'react';
@@ -20,6 +22,8 @@ import {
     FormularioProduto,
     FormularioReceita,
     MateriaPrimaRegistro,
+    ProdutoRegistro,
+    ReceitaRegistro,
     eComponenteEstoqueTipo,
     styleUtil,
 } from '../Componentes/ComponentesEstoque';
@@ -33,32 +37,65 @@ import {
     EstoqueParamList,
     eModalTipo,
 } from '../Navigation/types';
-import {CommonActions, useFocusEffect} from '@react-navigation/native';
+import {CommonActions} from '@react-navigation/native';
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
+
+// TODO: depois extrair esse hook em um arquivo de funções compartilhadas entre telas
+function useScreenScrollViewHeight(): number {
+    const bottomTabHeight = useBottomTabBarHeight();
+    const windowDimension = useWindowDimensions();
+
+    return windowDimension.height - bottomTabHeight;
+}
 
 function EstoqueVisualizacao() {
     const casoUsoInit = useContext(CasoUso);
 
     const [estoqueRegistro] = useVisualizaEstoque(casoUsoInit);
 
+    const scrowViewHeight = useScreenScrollViewHeight();
+
     return (
-        <ScrollView
-            contentContainerStyle={[
-                styleScreenUtil.alignTopCenter,
-                styleScreenUtil.containerFillScreenHorizontal,
-                styleEstoqueVisualizacao.containerEstoqueVisualizacao,
-            ]}>
-            <EstoqueContainer title="Matérias-primas">
-                {estoqueRegistro.materiasPrimas.map(materiaPrima => {
-                    return (
-                        <MateriaPrimaRegistro
-                            materiaPrima={materiaPrima}
-                            key={materiaPrima.item.id}
-                        />
-                    );
-                })}
-            </EstoqueContainer>
+        <View>
+            <ScrollView
+                style={{maxHeight: scrowViewHeight}}
+                contentContainerStyle={[
+                    styleScreenUtil.alignCenter,
+                    styleEstoqueVisualizacao.containerEstoqueVisualizacao,
+                ]}>
+                <EstoqueContainer title="Matérias-primas">
+                    {estoqueRegistro.materiasPrimas.map(materiaPrima => {
+                        return (
+                            <MateriaPrimaRegistro
+                                materiaPrima={materiaPrima}
+                                key={materiaPrima.item.id}
+                            />
+                        );
+                    })}
+                </EstoqueContainer>
+                <EstoqueContainer title="Produtos">
+                    {estoqueRegistro.produtos.map(produto => {
+                        return (
+                            <ProdutoRegistro
+                                produto={produto}
+                                key={produto.item.id}
+                            />
+                        );
+                    })}
+                </EstoqueContainer>
+                <EstoqueContainer title="Receitas">
+                    {estoqueRegistro.receitas.map(receita => {
+                        return (
+                            <ReceitaRegistro
+                                receita={receita}
+                                key={receita.id ?? 0}
+                            />
+                        );
+                    })}
+                </EstoqueContainer>
+            </ScrollView>
             <ButtonAdicionaEstoque />
-        </ScrollView>
+        </View>
     );
 }
 
@@ -124,11 +161,13 @@ function EstoqueGerenciamento({
             );
     }
 
+    const scrowViewHeight = useScreenScrollViewHeight();
+
     return (
         <ScrollView
+            style={{maxHeight: scrowViewHeight}}
             contentContainerStyle={[
-                styleScreenUtil.alignTopCenter,
-                styleScreenUtil.containerFillScreen,
+                styleScreenUtil.alignCenter,
                 styleEstoqueGerenciamento.containerEstoqueGerenciamento,
             ]}>
             {formulario}

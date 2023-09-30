@@ -42,10 +42,12 @@ import {
     faPlus,
     faMinus,
 } from '@fortawesome/free-solid-svg-icons';
-import {View} from 'react-native';
+import {StatusBar, View} from 'react-native';
 import {ItemCasoUso} from './CasosUsos/ItemCasoUso';
 import ItemRepositorioStub from './Data/ItemRepositorioStub';
 import {Store} from './Presenters/Slicers/Store';
+import { ReceitaCasoUso } from './CasosUsos/ReceitaCasoUso';
+import { ReceitaRepositorioStub } from './Data/ReceitaRepositorioStub';
 
 library.add(
     faChartPie,
@@ -115,15 +117,18 @@ function renderIconsBar({
         tabBarInactiveTintColor: '#AD79C2',
         headerShown: false,
         tabBarHideOnKeyboard: true,
+        tabBarAllowFontScaling: true,
     };
 }
 
 export type CasoUsoInit = {
     itemCasoUso: ItemCasoUso;
+    receitaCasoUso: ReceitaCasoUso;
 };
 
 const casoUsoInit: CasoUsoInit = {
     itemCasoUso: new ItemCasoUso(new ItemRepositorioStub()),
+    receitaCasoUso: new ReceitaCasoUso(new ReceitaRepositorioStub()),
 };
 
 export const CasoUso = createContext<CasoUsoInit>(casoUsoInit);
@@ -133,6 +138,7 @@ function App(): JSX.Element {
         <Provider store={Store}>
             <CasoUso.Provider value={casoUsoInit}>
                 <SafeAreaProvider>
+                    <StatusBar />
                     <NavigationContainer>
                         <Tab.Navigator
                             screenOptions={renderIconsBar}

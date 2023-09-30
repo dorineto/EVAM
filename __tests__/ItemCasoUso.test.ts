@@ -10,6 +10,10 @@ function setupStubs(): [ItemRepositorio] {
             buscaMateriaPrima: jest.fn(async (_: number) => null),
             gravaMateriaPrima: jest.fn(async (_: ItemEstoque) => 0),
             deletaMateriaPrima: jest.fn(async function (_: number) {}),
+            listaProdutos: jest.fn(async () => []),
+            buscaProduto: jest.fn(async (_: number) => null),
+            gravaProduto: jest.fn(async (_: ItemEstoque) => 0),
+            deletaProduto: jest.fn(async function (_: number) {}),
         },
     ];
 }
@@ -273,6 +277,297 @@ describe('Quando deletaMateriaPrima', () => {
 
             await expect(() =>
                 itemCasoUsoTest.deletaMateriaPrima(1),
+            ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando listaProdutos', () => {
+    it.concurrent(
+        'Caso retorne registros do repositorio então retorna os registros',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.listaProdutos = async () =>
+                ItemEstoqueBuilder.CriaListaTeste(
+                    1,
+                    5,
+                    new ItemBuilder().setTipo(eItemTipo.Produto),
+                );
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            let retorno = await itemCasoUsoTest.listaProdutos();
+
+            expect(retorno).not.toHaveLength(0);
+            expect(retorno).toEqual(
+                ItemEstoqueBuilder.CriaListaTeste(
+                    1,
+                    5,
+                    new ItemBuilder().setTipo(eItemTipo.Produto),
+                ),
+            );
+        },
+    );
+
+    it.concurrent(
+        'Caso não retorna registros do repositorio então retorna vazio',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.listaProdutos = async () => [];
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+            expect(await itemCasoUsoTest.listaProdutos()).toHaveLength(0);
+        },
+    );
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.listaProdutos = async function () {
+                throw new Error('Error repositorio esperado');
+            };
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            await expect(itemCasoUsoTest.listaProdutos()).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando buscaProduto', () => {
+    it.concurrent('Caso registro exista então retorna o registro', async () => {
+        const [itemRepositorioStub] = setupStubs();
+
+        const itemEstoqueTeste = ItemEstoqueBuilder.CriaItemTeste(
+            1,
+            new ItemBuilder().setTipo(eItemTipo.Produto),
+        );
+
+        itemRepositorioStub.buscaProduto = async (_: number) =>
+            itemEstoqueTeste;
+
+        let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+        let retorno = await itemCasoUsoTest.buscaProduto(1);
+
+        let retornoEsperado = ItemEstoqueBuilder.CriaItemTeste(
+            1,
+            new ItemBuilder().setTipo(eItemTipo.Produto),
+        );
+
+        expect(retorno).not.toBeNull();
+        expect(retorno).toEqual(retornoEsperado);
+        expect(retorno).not.toBe(itemEstoqueTeste);
+    });
+
+    it.concurrent('Caso registro não exista então retorna null', async () => {
+        const [itemRepositorioStub] = setupStubs();
+
+        itemRepositorioStub.buscaProduto = async (_: number) => null;
+
+        let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+        let retorno = await itemCasoUsoTest.buscaProduto(2);
+
+        expect(retorno).toBeNull();
+    });
+
+    it.concurrent('Caso passado ids invalidos retorna null', async () => {
+        const [itemRepositorioStub] = setupStubs();
+
+        itemRepositorioStub.buscaProduto = jest.fn(async (_: number) => null);
+
+        let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+        // teste ids 0
+        let retorno = await itemCasoUsoTest.buscaProduto(0);
+        expect(retorno).toBeNull();
+        expect(itemRepositorioStub.buscaProduto).toBeCalledTimes(0);
+
+        // teste ids negativos
+        retorno = await itemCasoUsoTest.buscaProduto(-1);
+
+        expect(retorno).toBeNull();
+        expect(itemRepositorioStub.buscaProduto).toBeCalledTimes(0);
+    });
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.buscaProduto = async (_: number) => {
+                throw new Error();
+            };
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            await expect(() =>
+                itemCasoUsoTest.buscaProduto(1),
+            ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando gravaProduto', () => {
+    it.concurrent(
+        'Caso passado valores validos então grava e retorna o id',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            const itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(
+                0,
+                new ItemBuilder().setTipo(eItemTipo.Produto),
+            );
+
+            let retorno = await itemCasoUsoTest.gravaProduto(itemEstoqueGrava);
+
+            const itemEstoqueEsperado = ItemEstoqueBuilder.CriaItemTeste(
+                0,
+                new ItemBuilder().setTipo(eItemTipo.Produto),
+            );
+
+            expect(itemEstoqueGrava).toEqual(itemEstoqueEsperado);
+            expect(retorno).toEqual(1);
+            expect(itemRepositorioStub.gravaProduto).toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso passado valores invalidos então lança excessão',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            async function assertLancaExcessaoValorInvalido(
+                itemGrava: ItemEstoque,
+            ) {
+                await expect(() =>
+                    itemCasoUsoTest.gravaProduto(itemGrava),
+                ).rejects.toThrow();
+
+                expect(itemRepositorioStub.gravaProduto).not.toBeCalled();
+            }
+
+            // Descricao item vazia
+            let itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(
+                0,
+                new ItemBuilder().setTipo(eItemTipo.Produto),
+            );
+
+            itemEstoqueGrava.item.descricao = '';
+            await assertLancaExcessaoValorInvalido(itemEstoqueGrava);
+
+            // Qtd negativa
+            itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(
+                0,
+                new ItemBuilder().setTipo(eItemTipo.Produto),
+            );
+
+            itemEstoqueGrava.qtd = -1;
+            await assertLancaExcessaoValorInvalido(itemEstoqueGrava);
+
+            // ValorMediaUnidade negativa
+            itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(
+                0,
+                new ItemBuilder().setTipo(eItemTipo.Produto),
+            );
+
+            itemEstoqueGrava.valorMediaUnidade = -1;
+            await assertLancaExcessaoValorInvalido(itemEstoqueGrava);
+        },
+    );
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.gravaProduto = async (_: ItemEstoque) => {
+                throw new Error();
+            };
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            const itemEstoqueGrava = ItemEstoqueBuilder.CriaItemTeste(
+                0,
+                new ItemBuilder().setTipo(eItemTipo.Produto),
+            );
+
+            await expect(() =>
+                itemCasoUsoTest.gravaProduto(itemEstoqueGrava),
+            ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando deletaProduto', () => {
+    it.concurrent(
+        'Caso passado valores validos então deleta registro',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.deletaProduto = jest.fn(async function (
+                _: number,
+            ) {});
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            await itemCasoUsoTest.deletaProduto(1);
+
+            expect(itemRepositorioStub.deletaProduto).toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso passe valores invalidos deve retornar sem chamar o repositorio',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.deletaProduto = jest.fn(
+                async (_: number) => {},
+            );
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            // Id seja 0
+            itemCasoUsoTest.deletaProduto(0);
+            expect(itemRepositorioStub.deletaProduto).not.toBeCalled();
+
+            // Id seja negativo
+            itemCasoUsoTest.deletaProduto(-1);
+            expect(itemRepositorioStub.deletaProduto).not.toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            const [itemRepositorioStub] = setupStubs();
+
+            itemRepositorioStub.deletaProduto = async (_: number) => {
+                throw new Error();
+            };
+
+            let itemCasoUsoTest = new ItemCasoUso(itemRepositorioStub);
+
+            await expect(() =>
+                itemCasoUsoTest.deletaProduto(1),
             ).rejects.toThrow();
         },
     );

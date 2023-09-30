@@ -48,4 +48,44 @@ export class ItemCasoUso {
 
         await this._itemRepositorio.deletaMateriaPrima(id);
     }
+
+    async listaProdutos(): Promise<ItemEstoque[]> {
+        return await this._itemRepositorio.listaProdutos();
+    }
+
+    async buscaProduto(id: number): Promise<ItemEstoque | null> {
+        if (id <= 0) {
+            return null;
+        }
+
+        return _.cloneDeep(await this._itemRepositorio.buscaProduto(id));
+    }
+
+    async gravaProduto(item: ItemEstoque): Promise<number> {
+        if ((item.item.descricao ?? '').trim() === '') {
+            throw new Error(
+                'A descrição da produto informada não pode ser vazia',
+            );
+        }
+
+        if (item.qtd < 0) {
+            throw new Error(
+                'A quantidade em estoque informada não pode ser negativa',
+            );
+        }
+
+        if (item.valorMediaUnidade < 0) {
+            throw new Error('A média de preço infomada não pode ser negativa');
+        }
+
+        return await this._itemRepositorio.gravaProduto(item);
+    }
+
+    async deletaProduto(id: number): Promise<void> {
+        if (id <= 0) {
+            return;
+        }
+
+        await this._itemRepositorio.deletaProduto(id);
+    }
 }

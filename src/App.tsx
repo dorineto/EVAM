@@ -128,9 +128,14 @@ export type CasoUsoInit = {
     receitaCasoUso: ReceitaCasoUso;
 };
 
+const itemRepositorio = new ItemRepositorioStub();
+
 const casoUsoInit: CasoUsoInit = {
-    itemCasoUso: new ItemCasoUso(new ItemRepositorioStub()),
-    receitaCasoUso: new ReceitaCasoUso(new ReceitaRepositorioStub()),
+    itemCasoUso: new ItemCasoUso(itemRepositorio),
+    receitaCasoUso: new ReceitaCasoUso(
+        new ReceitaRepositorioStub(),
+        itemRepositorio,
+    ),
 };
 
 export const CasoUso = createContext<CasoUsoInit>(casoUsoInit);

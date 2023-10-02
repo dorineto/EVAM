@@ -1,12 +1,18 @@
 import _ from 'lodash';
 import {Receita} from '../Entidades/Receita';
 import {ReceitaRepositorio} from '../Repositorios/ReceitaRepositorio';
+import {ItemRepositorio} from '../Repositorios/ItemRepositorio';
 
 export class ReceitaCasoUso {
     private _receitaRepositorio: ReceitaRepositorio;
+    private _itemRepositorio: ItemRepositorio;
 
-    constructor(receitaRepositorio: ReceitaRepositorio) {
+    constructor(
+        receitaRepositorio: ReceitaRepositorio,
+        itemRepositorio: ItemRepositorio,
+    ) {
         this._receitaRepositorio = receitaRepositorio;
+        this._itemRepositorio = itemRepositorio;
     }
 
     async listaReceitas(): Promise<Receita[]> {

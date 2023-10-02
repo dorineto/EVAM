@@ -11,6 +11,9 @@ export class ReceitaRepositorioStub implements ReceitaRepositorio {
     constructor() {
         this._listaReceitas = [...listaReceitas];
     }
+    
+    buscaReceita: (id: number) => Promise<Receita | null>;
+    gravaReceita: (receita: Receita) => Promise<number>;
 
     async listaReceitas(): Promise<Receita[]> {
         return _.cloneDeep(this._listaReceitas);

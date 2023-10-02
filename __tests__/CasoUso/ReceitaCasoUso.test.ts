@@ -1,11 +1,22 @@
 import {ReceitaCasoUso} from '../../src/CasosUsos/ReceitaCasoUso';
-import {Item, ItemMensurado, ItemReceita} from '../../src/Entidades/Item';
+import {
+    Item,
+    ItemEstoque,
+    ItemMensurado,
+    ItemReceita,
+    eItemTipo,
+} from '../../src/Entidades/Item';
 import {Medida, getMedida, eMedida} from '../../src/Entidades/Medida';
 import {Receita} from '../../src/Entidades/Receita';
+import {ItemRepositorio} from '../../src/Repositorios/ItemRepositorio';
 import {ReceitaRepositorio} from '../../src/Repositorios/ReceitaRepositorio';
-import {ItemBuilder} from './ItemCasoUso.test';
+import {
+    ItemBuilder,
+    ItemEstoqueBuilder,
+    setupStubsItemRepositorio,
+} from './ItemCasoUso.test';
 
-function setupStubs(): [ReceitaRepositorio] {
+export function setupStubsReceitaRepositorio(): [ReceitaRepositorio] {
     return [
         {
             listaReceitas: jest.fn(async () => []),
@@ -15,18 +26,27 @@ function setupStubs(): [ReceitaRepositorio] {
     ];
 }
 
+function setupStubs(): [ReceitaRepositorio, ItemRepositorio] {
+    return [...setupStubsReceitaRepositorio(), ...setupStubsItemRepositorio()];
+}
+
+//setupStubsItemRepositorio
+
 describe('Quando listaReceitas', () => {
     it.concurrent(
         'Caso retorne registros do repositorio então retorna os registros',
         async () => {
-            const [ReceitaRepositorioStub] = setupStubs();
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
             ReceitaRepositorioStub.listaReceitas = async () => [
                 ReceitaBuilder.CriaItemTeste(1),
                 ReceitaBuilder.CriaItemTeste(2),
             ];
 
-            let receitaCasoUsoTest = new ReceitaCasoUso(ReceitaRepositorioStub);
+            let receitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
 
             let retorno = await receitaCasoUsoTest.listaReceitas();
 
@@ -41,11 +61,14 @@ describe('Quando listaReceitas', () => {
     it.concurrent(
         'Caso não retorna registros do repositorio então retorna vazio',
         async () => {
-            const [ReceitaRepositorioStub] = setupStubs();
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
             ReceitaRepositorioStub.listaReceitas = async () => [];
 
-            let receitaCasoUsoTest = new ReceitaCasoUso(ReceitaRepositorioStub);
+            let receitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
             expect(await receitaCasoUsoTest.listaReceitas()).toHaveLength(0);
         },
     );
@@ -53,13 +76,16 @@ describe('Quando listaReceitas', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [ReceitaRepositorioStub] = setupStubs();
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
             ReceitaRepositorioStub.listaReceitas = async function () {
                 throw new Error('Error repositorio esperado');
             };
 
-            let receitaCasoUsoTest = new ReceitaCasoUso(ReceitaRepositorioStub);
+            let receitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
 
             await expect(receitaCasoUsoTest.listaReceitas()).rejects.toThrow();
         },
@@ -68,13 +94,16 @@ describe('Quando listaReceitas', () => {
 
 describe('Quando buscaReceita', () => {
     it.concurrent('Caso registro exista então retorna o registro', async () => {
-        const [ReceitaRepositorioStub] = setupStubs();
+        const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
         const receitaTeste = ReceitaBuilder.CriaItemTeste(1);
 
         ReceitaRepositorioStub.buscaReceita = async (_: number) => receitaTeste;
 
-        let ReceitaCasoUsoTest = new ReceitaCasoUso(ReceitaRepositorioStub);
+        let ReceitaCasoUsoTest = new ReceitaCasoUso(
+            ReceitaRepositorioStub,
+            ItemRepositorioStub,
+        );
 
         let retorno = await ReceitaCasoUsoTest.buscaReceita(1);
 
@@ -86,11 +115,14 @@ describe('Quando buscaReceita', () => {
     });
 
     it.concurrent('Caso registro não exista então retorna null', async () => {
-        const [ReceitaRepositorioStub] = setupStubs();
+        const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
         ReceitaRepositorioStub.buscaReceita = async (_: number) => null;
 
-        let ReceitaCasoUsoTest = new ReceitaCasoUso(ReceitaRepositorioStub);
+        let ReceitaCasoUsoTest = new ReceitaCasoUso(
+            ReceitaRepositorioStub,
+            ItemRepositorioStub,
+        );
 
         let retorno = await ReceitaCasoUsoTest.buscaReceita(2);
 
@@ -98,13 +130,16 @@ describe('Quando buscaReceita', () => {
     });
 
     it.concurrent('Caso passado ids invalidos retorna null', async () => {
-        const [ReceitaRepositorioStub] = setupStubs();
+        const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
         ReceitaRepositorioStub.buscaReceita = jest.fn(
             async (_: number) => null,
         );
 
-        let ReceitaCasoUsoTest = new ReceitaCasoUso(ReceitaRepositorioStub);
+        let ReceitaCasoUsoTest = new ReceitaCasoUso(
+            ReceitaRepositorioStub,
+            ItemRepositorioStub,
+        );
 
         // teste ids 0
         let retorno = await ReceitaCasoUsoTest.buscaReceita(0);
@@ -121,17 +156,85 @@ describe('Quando buscaReceita', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [ReceitaRepositorioStub] = setupStubs();
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
             ReceitaRepositorioStub.buscaReceita = async (_: number) => {
                 throw new Error();
             };
 
-            let ReceitaCasoUsoTest = new ReceitaCasoUso(ReceitaRepositorioStub);
+            let ReceitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
 
             await expect(() =>
                 ReceitaCasoUsoTest.buscaReceita(1),
             ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando gravaReceita', () => {
+    it.concurrent(
+        'Caso valore validos deve gravar receita e atualiza valor médio quando não tem outra receita',
+        async () => {
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
+
+            ReceitaRepositorioStub.gravaReceita = jest.fn(
+                async (_: Receita) => 1,
+            );
+
+            ItemRepositorioStub.buscaProduto = async (_: number) => {
+                return new ItemEstoqueBuilder()
+                    .setItemInfo(
+                        ItemBuilder.CriaItemTeste(
+                            7,
+                            new ItemBuilder().setTipo(eItemTipo.Produto),
+                        ),
+                    )
+                    .setValorMediaUnidade(76)
+                    .build();
+            };
+
+            ItemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+
+            let ReceitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            const receitaTeste = ReceitaBuilder.CriaItemTeste(
+                1,
+                new ReceitaBuilder()
+                    .setIngredientes([
+                        ItemReceitaBuilder.CriaListaTestes(
+                            1,
+                            1,
+                            new ItemReceitaBuilder()
+                                .setQtd(2)
+                                .setValorMediaUnidade(5),
+                        )[0],
+                        ItemReceitaBuilder.CriaListaTestes(
+                            2,
+                            1,
+                            new ItemReceitaBuilder()
+                                .setQtd(0.5)
+                                .setValorMediaUnidade(8),
+                        )[0],
+                    ])
+                    .setProduz(new ItemMensuradoBuilder().setQtd(2).build()),
+            );
+
+            let retorno = await ReceitaCasoUsoTest.gravaReceita(receitaTeste);
+
+            expect(retorno).toEqual(1);
+            expect(ReceitaRepositorioStub.gravaReceita).toBeCalled();
+            expect(
+                (<jest.Mock>ItemRepositorioStub.gravaProduto).mock.calls[0][0]
+                    ?.valorMediaUnidade ?? 0,
+            ).toEqual(7);
         },
     );
 });
@@ -220,7 +323,7 @@ export class ItemReceitaBuilder {
         itemBuilder: ItemBuilder | null = null,
     ): ItemReceita[] {
         const itemReceitaBuilderSelecionado =
-            itemReceitaBuilder ?? new ItemReceitaBuilder();
+            itemReceitaBuilder ?? new ItemReceitaBuilder().setQtd(7.6);
         const itemBuilderSelecionado = itemBuilder ?? new ItemBuilder();
 
         const itensGerados = ItemBuilder.CriaListaTeste(
@@ -230,10 +333,7 @@ export class ItemReceitaBuilder {
         );
 
         return itensGerados.map(ig => {
-            return itemReceitaBuilderSelecionado
-                .setItem(ig)
-                .setQtd(7.6)
-                .build();
+            return itemReceitaBuilderSelecionado.setItem(ig).build();
         });
     }
 }

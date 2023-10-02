@@ -3,7 +3,7 @@ import {Item, ItemEstoque, eItemTipo} from '../../src/Entidades/Item';
 import {Medida, eMedida, getMedida} from '../../src/Entidades/Medida';
 import {ItemRepositorio} from '../../src/Repositorios/ItemRepositorio';
 
-function setupStubs(): [ItemRepositorio] {
+export function setupStubsItemRepositorio(): [ItemRepositorio] {
     return [
         {
             listaMateriasPrimas: jest.fn(async () => []),
@@ -22,7 +22,7 @@ describe('Quando listaMateriasPrimas', () => {
     it.concurrent(
         'Caso retorne registros do repositorio então retorna os registros',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.listaMateriasPrimas = async () =>
                 ItemEstoqueBuilder.CriaListaTeste(1, 5);
@@ -39,7 +39,7 @@ describe('Quando listaMateriasPrimas', () => {
     it.concurrent(
         'Caso não retorna registros do repositorio então retorna vazio',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.listaMateriasPrimas = async () => [];
 
@@ -51,7 +51,7 @@ describe('Quando listaMateriasPrimas', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.listaMateriasPrimas = async function () {
                 throw new Error('Error repositorio esperado');
@@ -68,7 +68,7 @@ describe('Quando listaMateriasPrimas', () => {
 
 describe('Quando buscaMateriaPrima', () => {
     it.concurrent('Caso registro exista então retorna o registro', async () => {
-        const [itemRepositorioStub] = setupStubs();
+        const [itemRepositorioStub] = setupStubsItemRepositorio();
 
         const itemEstoqueTeste = ItemEstoqueBuilder.CriaItemTeste(1);
 
@@ -87,7 +87,7 @@ describe('Quando buscaMateriaPrima', () => {
     });
 
     it.concurrent('Caso registro não exista então retorna null', async () => {
-        const [itemRepositorioStub] = setupStubs();
+        const [itemRepositorioStub] = setupStubsItemRepositorio();
 
         itemRepositorioStub.buscaMateriaPrima = async (_: number) => null;
 
@@ -99,7 +99,7 @@ describe('Quando buscaMateriaPrima', () => {
     });
 
     it.concurrent('Caso passado ids invalidos retorna null', async () => {
-        const [itemRepositorioStub] = setupStubs();
+        const [itemRepositorioStub] = setupStubsItemRepositorio();
 
         itemRepositorioStub.buscaMateriaPrima = jest.fn(
             async (_: number) => null,
@@ -122,7 +122,7 @@ describe('Quando buscaMateriaPrima', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.buscaMateriaPrima = async (_: number) => {
                 throw new Error();
@@ -141,7 +141,7 @@ describe('Quando gravaMateriaPrima', () => {
     it.concurrent(
         'Caso passado valores validos então grava e retorna o id',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.gravaMateriaPrima = jest.fn(
                 async (_: ItemEstoque) => 1,
@@ -166,7 +166,7 @@ describe('Quando gravaMateriaPrima', () => {
     it.concurrent(
         'Caso passado valores invalidos então lança excessão',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.gravaMateriaPrima = jest.fn(
                 async (_: ItemEstoque) => 1,
@@ -207,7 +207,7 @@ describe('Quando gravaMateriaPrima', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.gravaMateriaPrima = async (_: ItemEstoque) => {
                 throw new Error();
@@ -228,7 +228,7 @@ describe('Quando deletaMateriaPrima', () => {
     it.concurrent(
         'Caso passado valores validos então deleta registro',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.deletaMateriaPrima = jest.fn(async function (
                 _: number,
@@ -245,7 +245,7 @@ describe('Quando deletaMateriaPrima', () => {
     it.concurrent(
         'Caso passe valores invalidos deve retornar sem chamar o repositorio',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.deletaMateriaPrima = jest.fn(
                 async (_: number) => {},
@@ -266,7 +266,7 @@ describe('Quando deletaMateriaPrima', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.deletaMateriaPrima = async (_: number) => {
                 throw new Error();
@@ -285,7 +285,7 @@ describe('Quando listaProdutos', () => {
     it.concurrent(
         'Caso retorne registros do repositorio então retorna os registros',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.listaProdutos = async () =>
                 ItemEstoqueBuilder.CriaListaTeste(
@@ -312,7 +312,7 @@ describe('Quando listaProdutos', () => {
     it.concurrent(
         'Caso não retorna registros do repositorio então retorna vazio',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.listaProdutos = async () => [];
 
@@ -324,7 +324,7 @@ describe('Quando listaProdutos', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.listaProdutos = async function () {
                 throw new Error('Error repositorio esperado');
@@ -339,7 +339,7 @@ describe('Quando listaProdutos', () => {
 
 describe('Quando buscaProduto', () => {
     it.concurrent('Caso registro exista então retorna o registro', async () => {
-        const [itemRepositorioStub] = setupStubs();
+        const [itemRepositorioStub] = setupStubsItemRepositorio();
 
         const itemEstoqueTeste = ItemEstoqueBuilder.CriaItemTeste(
             1,
@@ -364,7 +364,7 @@ describe('Quando buscaProduto', () => {
     });
 
     it.concurrent('Caso registro não exista então retorna null', async () => {
-        const [itemRepositorioStub] = setupStubs();
+        const [itemRepositorioStub] = setupStubsItemRepositorio();
 
         itemRepositorioStub.buscaProduto = async (_: number) => null;
 
@@ -376,7 +376,7 @@ describe('Quando buscaProduto', () => {
     });
 
     it.concurrent('Caso passado ids invalidos retorna null', async () => {
-        const [itemRepositorioStub] = setupStubs();
+        const [itemRepositorioStub] = setupStubsItemRepositorio();
 
         itemRepositorioStub.buscaProduto = jest.fn(async (_: number) => null);
 
@@ -397,7 +397,7 @@ describe('Quando buscaProduto', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.buscaProduto = async (_: number) => {
                 throw new Error();
@@ -416,7 +416,7 @@ describe('Quando gravaProduto', () => {
     it.concurrent(
         'Caso passado valores validos então grava e retorna o id',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.gravaProduto = jest.fn(
                 async (_: ItemEstoque) => 1,
@@ -445,7 +445,7 @@ describe('Quando gravaProduto', () => {
     it.concurrent(
         'Caso passado valores invalidos então lança excessão',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.gravaProduto = jest.fn(
                 async (_: ItemEstoque) => 1,
@@ -495,7 +495,7 @@ describe('Quando gravaProduto', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.gravaProduto = async (_: ItemEstoque) => {
                 throw new Error();
@@ -519,7 +519,7 @@ describe('Quando deletaProduto', () => {
     it.concurrent(
         'Caso passado valores validos então deleta registro',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.deletaProduto = jest.fn(async function (
                 _: number,
@@ -536,7 +536,7 @@ describe('Quando deletaProduto', () => {
     it.concurrent(
         'Caso passe valores invalidos deve retornar sem chamar o repositorio',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.deletaProduto = jest.fn(
                 async (_: number) => {},
@@ -557,7 +557,7 @@ describe('Quando deletaProduto', () => {
     it.concurrent(
         'Caso o repositório lance uma excessão então deixa lançar',
         async () => {
-            const [itemRepositorioStub] = setupStubs();
+            const [itemRepositorioStub] = setupStubsItemRepositorio();
 
             itemRepositorioStub.deletaProduto = async (_: number) => {
                 throw new Error();

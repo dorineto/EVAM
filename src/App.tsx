@@ -41,13 +41,14 @@ import {
     faShoppingCart,
     faPlus,
     faMinus,
+    faCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import {StatusBar, View} from 'react-native';
 import {ItemCasoUso} from './CasosUsos/ItemCasoUso';
 import ItemRepositorioStub from './Data/ItemRepositorioStub';
 import {Store} from './Presenters/Slicers/Store';
-import { ReceitaCasoUso } from './CasosUsos/ReceitaCasoUso';
-import { ReceitaRepositorioStub } from './Data/ReceitaRepositorioStub';
+import {ReceitaCasoUso} from './CasosUsos/ReceitaCasoUso';
+import {ReceitaRepositorioStub} from './Data/ReceitaRepositorioStub';
 
 library.add(
     faChartPie,
@@ -61,6 +62,7 @@ library.add(
     faShoppingCart,
     faPlus,
     faMinus,
+    faCircle,
 );
 
 const Tab = createBottomTabNavigator();

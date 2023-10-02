@@ -1,4 +1,4 @@
-import React, {useContext, useState, useCallback} from 'react';
+import React, {useContext, useState, useCallback, useMemo} from 'react';
 import {PropsWithChildren} from 'react';
 import {
     View,
@@ -10,7 +10,13 @@ import {
     TouchableOpacityProps,
     ScrollView,
 } from 'react-native';
-import {ItemEstoque} from '../../Entidades/Item';
+import {
+    ItemEstoque,
+    ItemMensurado,
+    ItemOrdem,
+    ItemReceita,
+    eItemTipo,
+} from '../../Entidades/Item';
 import {useNavigation} from '@react-navigation/native';
 import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
 import {Medida, MedidaInfo, eMedida, getMedida} from '../../Entidades/Medida';
@@ -19,16 +25,20 @@ import MaskInput, {Masks} from 'react-native-mask-input';
 import {QtdMask} from './Utils';
 import {
     ItemEstoqueFormulario,
+    ItemQuantidade,
+    ReceitaFormulario,
     useDeletaMateriaPrima,
     useDeletaProduto,
     useFormularioMateriaPrima,
     useFormularioProduto,
+    useFormularioReceita,
 } from '../Controlles/EstoqueController';
 import {CasoUso} from '../../App';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {IconProp} from '@fortawesome/fontawesome-svg-core';
 import {styleScreenUtil} from '../Screens/Estoque';
-import {Receita} from '../../Entidades/Receita';
+import {Receita as ReceitaDominio} from '../../Entidades/Receita';
+import _ from 'lodash';
 
 export type EstoqueContainerProps = {
     title: string;
@@ -45,6 +55,22 @@ export const styleUtil = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         lineHeight: 26.4,
+        letterSpacing: -0.7,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+    },
+    subTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        lineHeight: 26,
+        letterSpacing: -0.7,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+    },
+    nestedSubTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        lineHeight: 23.4,
         letterSpacing: -0.7,
         textAlign: 'center',
         textAlignVertical: 'center',
@@ -134,7 +160,11 @@ export function EstoqueContainer({
                 {title}
             </Text>
             <ScrollView
-                scrollEnabled={expandido}
+                centerContent
+                showsVerticalScrollIndicator={false}
+                style={{
+                    width: styleEstoqueContainer.contentContainerEstoque.width,
+                }}
                 contentContainerStyle={[
                     styleEstoqueContainer.contentContainerEstoque,
                 ]}>
@@ -147,19 +177,6 @@ export function EstoqueContainer({
                     expandido &&
                         styleEstoqueContainer.expandidoExpandButtonContainer,
                 ]}>
-                {/* <TouchableOpacity
-                    onPress={() => setExpandido(!expandido)}
-                    style={[
-                        styleEstoqueContainer.expandButton,
-                        expandido &&
-                            styleEstoqueContainer.expandidoExpandButton,
-                    ]}>
-                    <FontAwesomeIcon
-                        color={styleEstoqueContainer.expandButton.color}
-                        size={styleEstoqueContainer.expandButton.fontSize}
-                        icon={['fas', 'caret-down']}
-                    />
-                </TouchableOpacity> */}
                 <ButtonExpande
                     onPress={() => setExpandido(!expandido)}
                     expandido={expandido}
@@ -181,7 +198,7 @@ const styleEstoqueContainer = StyleSheet.create({
         maxHeight: 350,
     },
     expandidoContainerEstoque: {
-        maxHeight: 500,
+        maxHeight: undefined, // TODO: fazer o Scrollvierw funcionar um dentro do outro Scrollvierw
     },
     titleContainerEstoque: {
         backgroundColor: '#8E49A9',
@@ -312,14 +329,103 @@ export function ProdutoRegistro({
     );
 }
 
+export type RegistroItemListaItemProp = {
+    item: ItemReceita | ItemOrdem | ItemMensurado;
+    mostraValor?: boolean;
+};
+
+export function RegistroItemListaItem({
+    item,
+    mostraValor = false,
+}: RegistroItemListaItemProp): React.JSX.Element {
+    let valor: number | null = null;
+    if ('valorTotal' in item || 'valorMediaUnidade' in item) {
+        valor = 'valorTotal' in item ? item.valorTotal : item.valorMediaUnidade;
+    }
+
+    return (
+        <View
+            style={[styleRegistroItemListaItem.containerRegistroItemListaItem]}>
+            <View
+                style={[
+                    styleRegistroItemListaItem.contentRegistroItemListaItem,
+                    styleRegistroItemListaItem.iconRegistroItemListaItem,
+                ]}>
+                <FontAwesomeIcon
+                    size={
+                        styleRegistroItemListaItem.iconRegistroItemListaItem
+                            .fontSize
+                    }
+                    icon={['fas', 'circle']}
+                />
+            </View>
+            <Text
+                style={[
+                    styleUtil.contentText,
+                    styleRegistroItemListaItem.contentRegistroItemListaItem,
+                    mostraValor
+                        ? styleRegistroItemListaItem.descricaoRegistroItemListaItem
+                        : styleRegistroItemListaItem.expandidaDescricaoRegistroItemListaItem,
+                ]}>
+                {item.item.descricao}
+            </Text>
+            <Text
+                style={[
+                    styleUtil.contentText,
+                    styleRegistroItemListaItem.contentRegistroItemListaItem,
+                ]}>
+                {item.qtd} {item.medida.abreviacao}
+            </Text>
+            {valor && mostraValor && (
+                <Text
+                    style={[
+                        styleUtil.contentText,
+                        styleRegistroItemListaItem.contentRegistroItemListaItem,
+                    ]}>
+                    R$ {valor.toFixed(2).replace('.', ',')}
+                </Text>
+            )}
+        </View>
+    );
+}
+
+const styleRegistroItemListaItem = StyleSheet.create({
+    containerRegistroItemListaItem: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        flexDirection: 'row',
+        gap: 10,
+        width: '100%',
+    },
+    iconRegistroItemListaItem: {
+        fontSize: 8,
+        paddingLeft: 5,
+        width: '3%',
+    },
+    contentRegistroItemListaItem: {
+        flexGrow: 1,
+        textAlign: 'left',
+        textAlignVertical: 'center',
+        width: '23%',
+    },
+    descricaoRegistroItemListaItem: {
+        width: '45%',
+    },
+    expandidaDescricaoRegistroItemListaItem: {
+        width: '65%',
+    },
+});
+
 export type ReceitaRegistroProp = {
-    receita: Receita;
+    receita: ReceitaDominio;
 };
 
 export function ReceitaRegistro({
     receita,
 }: ReceitaRegistroProp): React.JSX.Element {
     const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+    const [expandido, setExpandido] = useState(false);
 
     function opcoes() {
         navigate('EstoqueModalOpcoes', {
@@ -329,20 +435,101 @@ export function ReceitaRegistro({
     }
 
     return (
-        <TouchableOpacity
-            onLongPress={opcoes}
-            style={styleItemRegistro.containerRegistro}>
-            <ButtonExpande />
-            <Text
-                style={[
-                    styleItemRegistro.descricaoRegistro,
-                    styleUtil.contentText,
-                ]}>
-                {receita.descricao}
-            </Text>
+        <TouchableOpacity onLongPress={opcoes}>
+            {!expandido ? (
+                <View style={[styleReceitaRegistro.containerReceitaRegistro]}>
+                    <ButtonExpande
+                        onPress={() => setExpandido(true)}
+                        expandido={false}
+                    />
+                    <Text
+                        style={[
+                            styleReceitaRegistro.descricaoReceitaRegistro,
+                            styleUtil.contentText,
+                        ]}>
+                        {receita.descricao}
+                    </Text>
+                </View>
+            ) : (
+                <View
+                    style={[
+                        styleReceitaRegistro.containerReceitaRegistro,
+                        styleReceitaRegistro.expandidoContainerReceitaRegistro,
+                    ]}>
+                    <Text
+                        style={[
+                            styleReceitaRegistro.descricaoReceitaRegistro,
+                            styleReceitaRegistro.expandidoDescricaoReceitaRegistro,
+                            styleUtil.subTitle,
+                        ]}>
+                        {receita.descricao}
+                    </Text>
+                    <View
+                        style={[
+                            styleUtil.alignCenter,
+                            styleReceitaRegistro.itensContainerReceitaRegistro,
+                        ]}>
+                        <Text style={[styleUtil.nestedSubTitle]}>Produto</Text>
+                        <RegistroItemListaItem item={receita.produz} />
+                    </View>
+                    <View
+                        style={[
+                            styleUtil.alignCenter,
+                            styleReceitaRegistro.itensContainerReceitaRegistro,
+                        ]}>
+                        <Text style={[styleUtil.nestedSubTitle]}>
+                            Ingredientes
+                        </Text>
+                        {receita.ingredientes.map(i => (
+                            <RegistroItemListaItem item={i} key={i.item.id} />
+                        ))}
+                    </View>
+                    <ButtonExpande
+                        onPress={() => setExpandido(false)}
+                        expandido={true}
+                    />
+                </View>
+            )}
         </TouchableOpacity>
     );
 }
+
+const styleReceitaRegistro = StyleSheet.create({
+    containerReceitaRegistro: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        backgroundColor: '#BFAEC6',
+        gap: 10,
+        width: '100%',
+        borderRadius: 15,
+        marginBottom: 10,
+        padding: 5,
+    },
+    expandidoContainerReceitaRegistro: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+    },
+    descricaoReceitaRegistro: {
+        flexGrow: 0.7,
+        maxWidth: '70%',
+    },
+    expandidoDescricaoReceitaRegistro: {
+        flexGrow: undefined,
+        width: '100%',
+        backgroundColor: '#B180C5',
+        padding: 10,
+        color: '#fff',
+        borderRadius: 15,
+    },
+    itensContainerReceitaRegistro: {
+        backgroundColor: '#E8D7EE',
+        borderRadius: 15,
+        padding: 10,
+    },
+});
 
 const styleItemRegistro = StyleSheet.create({
     containerRegistro: {
@@ -352,7 +539,7 @@ const styleItemRegistro = StyleSheet.create({
         alignItems: 'flex-start',
         backgroundColor: '#BFAEC6',
         gap: 15,
-        maxWidth: '100%',
+        width: '100%',
         borderRadius: 15,
         marginBottom: 10,
     },
@@ -814,6 +1001,9 @@ const styleFormularioUtil = StyleSheet.create({
         width: '100%',
         flexDirection: 'row',
     },
+    containerDropdownListVertical: {
+        flexDirection: 'column',
+    },
     inputDropdownList: {
         backgroundColor: '#F5F5F5',
         borderColor: '#E7E7E7',
@@ -821,6 +1011,9 @@ const styleFormularioUtil = StyleSheet.create({
         padding: 15,
         borderRadius: 15,
         flexGrow: 0.3,
+    },
+    inputDropdownListVertical: {
+        flexGrow: undefined,
     },
     inputSideDropdownList: {
         width: 'auto',
@@ -1139,19 +1332,452 @@ export function FormularioProduto({
     );
 }
 
+function convertMaskedNumberToNumber(maskedNumber: string): number {
+    return Number(maskedNumber.replaceAll('.', '').replace(',', '.').trim());
+}
+
+function convertNumberToMaskedNumber(numberVal: number | undefined): string {
+    return numberVal?.toFixed(2).replace('.', ',') ?? '';
+}
+
+export type ItemQuantidadeInputProps = {
+    itens: ItemEstoque[];
+    tipo: 'produto' | 'item';
+    valorInicial?: ItemQuantidade;
+    onChange?: (value: ItemQuantidade) => void;
+};
+
+export function ItemQuantidadeInput({
+    itens,
+    tipo,
+    valorInicial,
+    onChange,
+}: ItemQuantidadeInputProps): React.JSX.Element {
+    const itensInfo = useMemo(() => {
+        const listaItens = itens.map(i => {
+            return {
+                key: i.item.id,
+                value: i.item.descricao,
+            };
+        });
+
+        const dictItens = itens.reduce(
+            (lastVal: {[id: number]: ItemEstoque}, currValue) => {
+                lastVal[currValue.item.id] = currValue;
+
+                return lastVal;
+            },
+            {},
+        );
+
+        return {
+            listaItens: listaItens,
+            dictItens: dictItens,
+        };
+    }, [itens]);
+
+    const [itemSelecionado, setItemSelecionado] = useState(
+        itensInfo.dictItens[valorInicial?.id ?? 0],
+    );
+
+    const [qtdInp, setQtdInp] = useState(
+        convertNumberToMaskedNumber(valorInicial?.qtd),
+    );
+
+    function geraItemQuantidade(id: number, qtd: number): ItemQuantidade {
+        return {
+            id: id,
+            qtd: qtd,
+        };
+    }
+
+    function onDropDownlistItemChange(key: number) {
+        if (!key) {
+            return;
+        }
+
+        setItemSelecionado(itensInfo.dictItens[key]);
+    }
+
+    function onDropDownlistItemSelect() {
+        if (onChange) {
+            onChange(
+                geraItemQuantidade(
+                    itemSelecionado?.item.id ?? 0,
+                    convertMaskedNumberToNumber(qtdInp),
+                ),
+            );
+        }
+    }
+
+    function onInputQtdChange(masked: string) {
+        if (onChange) {
+            onChange(
+                geraItemQuantidade(
+                    itemSelecionado?.item.id ?? 0,
+                    convertMaskedNumberToNumber(masked),
+                ),
+            );
+        }
+
+        setQtdInp(masked);
+    }
+
+    return (
+        <View
+            style={[
+                styleUtil.alignCenter,
+                styleFormularioUtil.containerDropdownList,
+                styleFormularioUtil.containerDropdownListVertical,
+            ]}>
+            <SelectList
+                setSelected={onDropDownlistItemChange}
+                onSelect={onDropDownlistItemSelect}
+                data={itensInfo.listaItens}
+                defaultOption={itensInfo.listaItens.find(
+                    i => i.key === valorInicial?.id,
+                )}
+                placeholder={tipo === 'produto' ? 'Produto' : 'Item'}
+                save="key"
+                search={true}
+                dropdownStyles={{
+                    ...styleFormularioUtil.inputDropdownList,
+                    ...styleFormularioUtil.inputDropdownListVertical,
+                }}
+                boxStyles={{
+                    ...styleFormularioUtil.inputDropdownList,
+                    ...styleFormularioUtil.inputDropdownListVertical,
+                }}
+                dropdownTextStyles={styleUtil.contentText}
+                inputStyles={styleUtil.contentText}
+                notFoundText="Não encontrado"
+                searchPlaceholder="Pesquisar"
+            />
+            <MaskInput
+                mask={QtdMask}
+                placeholder="Quantidade estoque"
+                value={qtdInp}
+                onChangeText={onInputQtdChange}
+                keyboardType="numeric"
+                style={[
+                    styleFormularioUtil.inputFormulario,
+                    styleUtil.contentText,
+                    styleFormularioUtil.inputSideDropdownList,
+                ]}
+            />
+            {itemSelecionado?.medida.abreviacao && (
+                <Text>em {itemSelecionado?.medida.abreviacao}</Text>
+            )}
+        </View>
+    );
+}
+
+export type MultipleItemQuantidadeProp = {
+    title: string;
+    listaItens: ItemEstoque[];
+    valoresIniciais?: ItemQuantidade[] | null;
+    onChange?: (novaLista: ItemQuantidade[]) => void;
+};
+
+export function MultipleItemQuantidade({
+    title,
+    listaItens,
+    valoresIniciais,
+    onChange,
+}: MultipleItemQuantidadeProp): React.JSX.Element {
+    const [listaItensQuantidade, setListaItensQuantidade] = useState(
+        _.cloneDeep(valoresIniciais ?? []),
+    );
+
+    function handleAdd() {
+        if (listaItensQuantidade.find(liq => liq.id === 0)) {
+            return;
+        }
+
+        setListaItensQuantidade(value => [...value, {id: 0, qtd: 0}]);
+    }
+
+    function handleChangeItemQuantidadeInput(
+        idItem: number,
+        value: ItemQuantidade,
+    ) {
+        const listaItensQuantidadeAlterado = listaItensQuantidade.map(liq => {
+            if (liq.id === idItem) {
+                return {...value};
+            }
+
+            return liq;
+        });
+
+        if (onChange) {
+            onChange(listaItensQuantidadeAlterado);
+        }
+
+        setListaItensQuantidade(listaItensQuantidadeAlterado);
+    }
+
+    function handleRemove(idItem: number) {
+        const listaItensQuantidadeAlterado = listaItensQuantidade.filter(
+            liq => liq.id !== idItem,
+        );
+
+        if (onChange) {
+            onChange(listaItensQuantidadeAlterado);
+        }
+
+        setListaItensQuantidade(listaItensQuantidadeAlterado);
+    }
+
+    return (
+        <View style={[styleUtil.alignCenter]}>
+            <Text style={[styleUtil.subTitle]}>{title}</Text>
+            {listaItensQuantidade.map(val => {
+                return (
+                    <View key={val.id}>
+                        <ItemQuantidadeInput
+                            itens={listaItens}
+                            tipo="item"
+                            valorInicial={val?.id !== 0 ? val : undefined}
+                            onChange={valor =>
+                                handleChangeItemQuantidadeInput(val.id, valor)
+                            }
+                        />
+                        <ButtonWithStyle
+                            title="REMOVE"
+                            onPress={() => handleRemove(val.id)}
+                            style={[styleUtil.button, styleUtil.actionButton]}
+                        />
+                    </View>
+                );
+            })}
+            <ButtonWithStyle
+                title="ADD"
+                onPress={handleAdd}
+                style={[styleUtil.button, styleUtil.actionButton]}
+            />
+        </View>
+    );
+}
+
+interface FormularioReceitaLoadedProp extends FormularioEstoqueProp {
+    receitaFormulario: ReceitaFormulario | null;
+    listaProdutos: ItemEstoque[];
+    listaMateriasPrimas: ItemEstoque[];
+    gravaReceita: (receitaVisualizacao: ReceitaFormulario) => Promise<void>;
+    cancelar: () => void;
+    confirmaGravar: () => void;
+    displayMensagem: (mensagem: string, tipo: eModalTipo) => void;
+}
+
+function FormularioReceitaLoaded({
+    receitaFormulario,
+    listaProdutos,
+    listaMateriasPrimas,
+    gravaReceita,
+    cancelar,
+    confirmaGravar,
+    displayMensagem,
+    cancelado,
+}: FormularioReceitaLoadedProp) {
+    let novoRegistro = (receitaFormulario?.id ?? 0) === 0;
+
+    const [descricaoInp, setDescricao] = useState(
+        receitaFormulario?.descricao ?? '',
+    );
+
+    const [itemProduzido, setItemProduzido] = useState<
+        ItemQuantidade | undefined
+    >(receitaFormulario?.produz);
+
+    const [listaIngredientes, setListaIngredientes] = useState<
+        ItemQuantidade[]
+    >([]);
+
+    const [aguardandoConfimacao, setAguardandoConfimacao] = useState(false);
+
+    function validaValores() {
+        if (descricaoInp.trim() === '') {
+            return 'Informe valor para a nome da receita';
+        }
+
+        if (!itemProduzido || itemProduzido.id <= 0) {
+            return 'Selecione um produto que será produzido pela receita';
+        }
+
+        if (itemProduzido.qtd <= 0) {
+            return 'Informe a quantidade que será produzida do produto pela receita';
+        }
+
+        if (
+            listaIngredientes.length === 0 ||
+            listaIngredientes.every(li => li.id === 0)
+        ) {
+            return 'Selecione pelo menos um ingrediente para a receita';
+        }
+
+        const itensSemQuantidade = listaIngredientes
+            .filter(li => li.qtd <= 0)
+            .map(li => li.id);
+        if (itensSemQuantidade.length) {
+            const descricoesItensSemQuantidade = listaMateriasPrimas
+                .filter(lmp => itensSemQuantidade.includes(lmp.item.id))
+                .map(lmp => lmp.item.descricao)
+                .join(',');
+
+            return `Informe a quantidade que será utilizada do(s) ingrediente(s): ${descricoesItensSemQuantidade}`;
+        }
+
+        return '';
+    }
+
+    const trataGravar = useCallback(
+        (
+            id: number,
+            descricao: string,
+            itemProduzidoSelecionado: ItemQuantidade,
+            ingredientes: ItemQuantidade[],
+        ) => {
+            async function handleGravar() {
+                setAguardandoConfimacao(false);
+
+                try {
+                    await gravaReceita({
+                        id: id,
+                        descricao: descricao,
+                        produz: itemProduzidoSelecionado,
+                        ingredientes: ingredientes,
+                    });
+
+                    displayMensagem(
+                        'Foi gravado com sucesso',
+                        eModalTipo.Sucesso,
+                    );
+                } catch (e) {
+                    if (e instanceof Error) {
+                        displayMensagem(e.message, eModalTipo.Erro);
+                    }
+                }
+            }
+
+            handleGravar();
+        },
+        [displayMensagem, gravaReceita],
+    );
+
+    if (aguardandoConfimacao && cancelado !== undefined && !cancelado) {
+        if (itemProduzido) {
+            trataGravar(
+                receitaFormulario?.id ?? 0,
+                descricaoInp,
+                itemProduzido,
+                listaIngredientes,
+            );
+        }
+    }
+
+    return (
+        <View
+            style={[
+                styleUtil.alignCenter,
+                styleFormularioUtil.containerFormulario,
+            ]}>
+            <Text
+                style={[
+                    styleFormularioUtil.titleFormulario,
+                    styleUtil.titleText,
+                ]}>
+                {novoRegistro ? 'Adição' : 'Edição'} Receita
+            </Text>
+            <View
+                style={[
+                    styleUtil.alignCenter,
+                    styleFormularioUtil.inputContainerFormulario,
+                ]}>
+                <TextInput
+                    placeholder="Nome Receita"
+                    value={descricaoInp}
+                    onChangeText={setDescricao}
+                    maxLength={50}
+                    style={[
+                        styleFormularioUtil.inputFormulario,
+                        styleUtil.contentText,
+                    ]}
+                />
+                <ItemQuantidadeInput
+                    itens={listaProdutos}
+                    valorInicial={receitaFormulario?.produz}
+                    tipo="produto"
+                    onChange={setItemProduzido}
+                />
+                <MultipleItemQuantidade
+                    title="Itens Receita"
+                    listaItens={listaMateriasPrimas}
+                    valoresIniciais={receitaFormulario?.ingredientes}
+                    onChange={setListaIngredientes}
+                />
+            </View>
+            <View
+                style={[
+                    styleUtil.alignCenter,
+                    styleFormularioUtil.buttonContainerFormulario,
+                ]}>
+                <ButtonWithStyle
+                    title={novoRegistro ? 'Adicionar' : 'Gravar'}
+                    onPress={() => {
+                        let mensagem = validaValores();
+                        if (mensagem.trim() !== '') {
+                            displayMensagem(mensagem, eModalTipo.Erro);
+                            return;
+                        }
+
+                        confirmaGravar();
+                        setAguardandoConfimacao(true);
+                    }}
+                    style={[styleUtil.button, styleUtil.actionButton]}
+                />
+                <ButtonWithStyle
+                    title="Cancelar"
+                    onPress={cancelar}
+                    style={[styleUtil.button, styleUtil.cancelaButton]}
+                />
+            </View>
+        </View>
+    );
+}
+
 export function FormularioReceita({
     id,
+    cancelado,
 }: FormularioEstoqueProp): React.JSX.Element {
-    const navigation = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+    const casoUsoInit = useContext(CasoUso);
 
-    function handleCancelar() {
-        navigation.goBack();
-    }
+    const [
+        cancelar,
+        confirmaGravar,
+        displayMensagem,
+        receitaFormulario,
+        listaMateriaPrima,
+        listaProdutos,
+        gravaReceita,
+        loading,
+    ] = useFormularioReceita(casoUsoInit, id);
+
     return (
         <View>
-            <Text>{id ? 'Edição' : 'Adição'} Receita</Text>
-            <View />
-            <Button title="Cancelar" onPress={handleCancelar} />
+            {!loading ? (
+                <FormularioReceitaLoaded
+                    receitaFormulario={receitaFormulario}
+                    listaMateriasPrimas={listaMateriaPrima}
+                    listaProdutos={listaProdutos}
+                    gravaReceita={gravaReceita}
+                    cancelar={cancelar}
+                    confirmaGravar={confirmaGravar}
+                    displayMensagem={displayMensagem}
+                    cancelado={cancelado}
+                />
+            ) : (
+                <Text>loading</Text>
+            )}
         </View>
     );
 }
@@ -1262,24 +1888,28 @@ const styleModalOpcoes = StyleSheet.create({
 });
 
 export function ButtonWithStyle(
-    props: TouchableOpacityProps & {title: string},
+    props: TouchableOpacityProps & {title: string | React.JSX.Element},
 ): React.JSX.Element {
     return (
         <TouchableOpacity {...props}>
-            <Text
-                style={[
-                    props.style,
-                    {
-                        textAlign: 'center',
-                        textAlignVertical: 'center',
-                        backgroundColor: undefined,
-                        borderColor: undefined,
-                        borderWidth: undefined,
-                        padding: undefined,
-                    },
-                ]}>
-                {props.title}
-            </Text>
+            {typeof props.title === 'string' ? (
+                <Text
+                    style={[
+                        props.style,
+                        {
+                            textAlign: 'center',
+                            textAlignVertical: 'center',
+                            backgroundColor: undefined,
+                            borderColor: undefined,
+                            borderWidth: undefined,
+                            padding: undefined,
+                        },
+                    ]}>
+                    {props.title}
+                </Text>
+            ) : (
+                props.title
+            )}
         </TouchableOpacity>
     );
 }
@@ -1359,27 +1989,70 @@ export function EstoqueModalOpcoesReceita({
     id,
     cancelado,
 }: EstoqueModalOpcoesProp): React.JSX.Element {
-    const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+    const casoUsoInit = useContext(CasoUso);
+
+    //const [deleta] = useDeletaProduto(casoUsoInit);
+    const [deleta] = [async (_: number) => {}];
+    const natigation = useNavigation<EstoqueGerenciamentoProps['navigation']>();
 
     function editar() {
-        navigate('EstoqueGerenciamento', {
+        natigation.navigate('EstoqueGerenciamento', {
             componenteEstoqueTipo: eComponenteEstoqueTipo.Receita,
             id: id,
         });
     }
 
-    function excluir() {}
+    function confimaExclusao() {
+        natigation.navigate('EstoqueModalInfo', {
+            tipo: eModalTipo.Aviso,
+            mensagem: 'Deseja excluir o registro selecionado?',
+            redirecionaConfirma: 'EstoqueModalOpcoes',
+            redirecionaCancela: 'EstoqueVisualizacao',
+        });
+    }
+
+    const trataExclui = useCallback(
+        (idExclui: number) => {
+            async function handleExclui() {
+                try {
+                    await deleta(idExclui);
+                    natigation.navigate('EstoqueVisualizacao');
+                } catch (e) {
+                    if (e instanceof Error) {
+                        natigation.navigate('EstoqueModalInfo', {
+                            tipo: eModalTipo.Erro,
+                            mensagem: e.message,
+                            redirecionaConfirma: 'EstoqueVisualizacao',
+                        });
+                    }
+                }
+            }
+
+            handleExclui();
+        },
+        [deleta, natigation],
+    );
+
+    if (cancelado !== undefined) {
+        trataExclui(id);
+    }
 
     return (
         <View
-            style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#fff',
-            }}>
-            <Button title="Editar" onPress={editar} />
-            <Button title="Excluir" onPress={excluir} />
+            style={[
+                styleScreenUtil.alignCenter,
+                styleModalOpcoes.containerModalOption,
+            ]}>
+            <ButtonWithStyle
+                title="Editar"
+                onPress={editar}
+                style={[styleUtil.button, styleUtil.actionButton]}
+            />
+            <ButtonWithStyle
+                title="Excluir"
+                onPress={confimaExclusao}
+                style={[styleUtil.button, styleUtil.cancelaButton]}
+            />
         </View>
     );
 }

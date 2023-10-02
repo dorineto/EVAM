@@ -22,13 +22,47 @@ export class Receita {
         this._inclusao = inclusao.toISOString();
     }
 
-    adicionaIngredientes(...ingredientesAdicionados: ItemReceita[]) {
-        throw new Error('Não implementado');
-    }
+    // atualizaIngredientes(...ingredientes: ItemReceita[]) {
+    //     const ingredientesAtualizaDict = ingredientes.reduce(
+    //         (prevVal: {[id: number]: ItemReceita}, currVal) => {
+    //             prevVal[currVal.item.id] = currVal;
+    //             return prevVal;
+    //         },
+    //         {},
+    //     );
 
-    removerIngredientes(...ingredientesRemovidos: ItemReceita[]) {
-        throw new Error('Não implementado');
-    }
+    //     const ingredientesAtualDict = this._ingredientes.reduce(
+    //         (prevVal: {[id: number]: ItemReceita}, currVal) => {
+    //             prevVal[currVal.item.id] = currVal;
+    //             return prevVal;
+    //         },
+    //         {},
+    //     );
+
+    //     const ingredientesAtualizaIds = Object.keys(ingredientesAtualizaDict);
+    //     const ingredientesAtualIds = Object.keys(ingredientesAtualDict);
+
+    //     const ingredientesAtualizarIds = ingredientesAtualizaIds
+    //         .filter(iai => ingredientesAtualIds.includes(iai))
+    //         .map(iai => Number(iai));
+
+    //     const ingredientesAdicionarIds = ingredientesAtualizaIds
+    //         .filter(iai => !ingredientesAtualIds.includes(iai))
+    //         .map(iai => Number(iai));
+
+    //     for (let id of ingredientesAtualizarIds) {
+    //         const ingredienteAtual = ingredientesAtualDict[id];
+    //         const ingredienteAtualizarInfo = ingredientesAtualizaDict[id];
+
+    //         ingredienteAtual.qtd = ingredienteAtualizarInfo.qtd;
+    //     }
+
+    //     let ingredientesAdicionar = ingredientesAdicionarIds.map(
+    //         iai => ingredientesAtualizaDict[iai],
+    //     );
+
+    //     this._ingredientes.push(...ingredientesAdicionar);
+    // }
 
     get id(): number {
         return this._id;
@@ -54,7 +88,11 @@ export class Receita {
         return _.cloneDeep(this._ingredientes);
     }
 
-    set produz(itemProduzido: ItemReceita) {
+    set ingredientes(ingredientesInp: ItemReceita[]) {
+        this._ingredientes = _.cloneDeep(ingredientesInp);
+    }
+
+    set produz(itemProduzido: ItemMensurado) {
         this._produz = itemProduzido;
     }
 

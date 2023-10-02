@@ -1,7 +1,7 @@
-import {ItemCasoUso} from '../src/CasosUsos/ItemCasoUso';
-import {Item, ItemEstoque, eItemTipo} from '../src/Entidades/Item';
-import {Medida, eMedida, getMedida} from '../src/Entidades/Medida';
-import {ItemRepositorio} from '../src/Repositorios/ItemRepositorio';
+import {ItemCasoUso} from '../../src/CasosUsos/ItemCasoUso';
+import {Item, ItemEstoque, eItemTipo} from '../../src/Entidades/Item';
+import {Medida, eMedida, getMedida} from '../../src/Entidades/Medida';
+import {ItemRepositorio} from '../../src/Repositorios/ItemRepositorio';
 
 function setupStubs(): [ItemRepositorio] {
     return [
@@ -18,7 +18,6 @@ function setupStubs(): [ItemRepositorio] {
     ];
 }
 
-// Reseta o itemRepositorioStub a cada teste
 describe('Quando listaMateriasPrimas', () => {
     it.concurrent(
         'Caso retorne registros do repositorio então retorna os registros',
@@ -573,7 +572,7 @@ describe('Quando deletaProduto', () => {
     );
 });
 
-class ItemBuilder {
+export class ItemBuilder {
     private _id: number = 0;
     private _tipo: eItemTipo = eItemTipo.MateriaPrima;
     private _descricao: string = '';
@@ -638,7 +637,7 @@ class ItemBuilder {
     }
 }
 
-class ItemEstoqueBuilder {
+export class ItemEstoqueBuilder {
     private _item: Item = ItemBuilder.CriaItemTeste();
     private _medida: Medida = getMedida(eMedida.unidade);
     private _qtd: number = 0;

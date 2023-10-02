@@ -1,5 +1,10 @@
 import {useCallback, useEffect, useState} from 'react';
-import {ItemEstoque, eItemTipo} from '../../Entidades/Item';
+import {
+    ItemEstoque,
+    ItemMensurado,
+    ItemReceita,
+    eItemTipo,
+} from '../../Entidades/Item';
 import {CasoUsoInit} from '../../App';
 import {
     Medida,
@@ -13,10 +18,13 @@ import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
 import {useAppDispatch} from '../Slicers/Store';
 import {
     FormularioItemEstoque,
+    FormularioReceita,
     selectFormularioMateriaPrima,
     selectFormularioProduto,
+    selectFormularioReceita,
     setFormularioMateriaPrima,
     setFormularioProduto,
+    setFormularioReceita,
 } from '../Slicers/EstoqueSlice';
 import {useSelector} from 'react-redux';
 import _ from 'lodash';
@@ -73,7 +81,6 @@ type useFormularioEstoqueRet = [
     () => void,
     () => void,
     (mensagem: string, tipo: eModalTipo) => void,
-    MedidaInfo[],
 ];
 
 export function useFormularioEstoque(
@@ -111,9 +118,7 @@ export function useFormularioEstoque(
         });
     }
 
-    const listaMedidasInfo = listMedidas();
-
-    return [cancelar, confirmaGravar, displayMensagem, listaMedidasInfo];
+    return [cancelar, confirmaGravar, displayMensagem];
 }
 
 function traduzItemEstoqueFormulario(item: ItemEstoque): ItemEstoqueFormulario {
@@ -126,8 +131,9 @@ function traduzItemEstoqueFormulario(item: ItemEstoque): ItemEstoqueFormulario {
     };
 }
 
-export type UseFormularioMateriaPrimaRet = [
+export type UseFormularioItemEstoqueRet = [
     ...useFormularioEstoqueRet,
+    MedidaInfo[],
     ItemEstoqueFormulario | null,
     (itemVisualizacao: ItemEstoqueFormulario) => Promise<void>,
     boolean,
@@ -136,11 +142,13 @@ export type UseFormularioMateriaPrimaRet = [
 export function useFormularioMateriaPrima(
     {itemCasoUso}: CasoUsoInit,
     id?: number,
-): UseFormularioMateriaPrimaRet {
+): UseFormularioItemEstoqueRet {
     const novoRegistro = (id ?? 0) <= 0;
 
-    const [cancelar, confirmaGravar, displayMensagem, listaMedidasInfo] =
+    const [cancelar, confirmaGravar, displayMensagem] =
         useFormularioEstoque(novoRegistro);
+
+    const listaMedidasInfo = listMedidas();
 
     const dispatch = useAppDispatch();
 
@@ -149,18 +157,6 @@ export function useFormularioMateriaPrima(
     );
 
     const [loading, setLoading] = useState(true);
-
-    // function traduzItemEstoqueFormulario(
-    //     item: ItemEstoque,
-    // ): ItemEstoqueFormulario {
-    //     return {
-    //         id: item.item.id,
-    //         descricao: item.item.descricao,
-    //         medida: item.medida,
-    //         qtd: item.qtd,
-    //         valorMediaUnidade: item.valorMediaUnidade,
-    //     };
-    // }
 
     useEffect(() => {
         async function buscaMateriaPrima() {
@@ -273,21 +269,16 @@ export function useDeletaMateriaPrima({
     return [deleta];
 }
 
-export type UseFormularioProdutoRet = [
-    ...useFormularioEstoqueRet,
-    ItemEstoqueFormulario | null,
-    (itemVisualizacao: ItemEstoqueFormulario) => Promise<void>,
-    boolean,
-];
-
 export function useFormularioProduto(
     {itemCasoUso}: CasoUsoInit,
     id?: number,
-): UseFormularioProdutoRet {
+): UseFormularioItemEstoqueRet {
     const novoRegistro = (id ?? 0) <= 0;
 
-    const [cancelar, confirmaGravar, displayMensagem, listaMedidasInfo] =
+    const [cancelar, confirmaGravar, displayMensagem] =
         useFormularioEstoque(novoRegistro);
+
+    const listaMedidasInfo = listMedidas();
 
     const dispatch = useAppDispatch();
 
@@ -400,4 +391,259 @@ export function useDeletaProduto({itemCasoUso}: CasoUsoInit): useDeletaEstoque {
     }
 
     return [deleta];
+}
+
+export type ItemQuantidade = {
+    id: number;
+    qtd: number;
+};
+
+export type ReceitaSerializada = {
+    id: number;
+    descricao: string;
+    ingredientes: ItemReceita[];
+    produz: ItemMensurado;
+    inclusao: string;
+};
+
+function convertToReceitaSerializada(receita: Receita): ReceitaSerializada {
+    return {
+        id: receita.id,
+        descricao: receita.descricao,
+        ingredientes: receita.ingredientes,
+        produz: receita.produz,
+        inclusao: receita.inclusao.toISOString(),
+    };
+}
+
+function convertToReceita(receitaSerializada: ReceitaSerializada): Receita {
+    return new Receita(
+        receitaSerializada.id,
+        receitaSerializada.descricao,
+        receitaSerializada.produz,
+        receitaSerializada.ingredientes,
+        new Date(receitaSerializada.inclusao),
+    );
+}
+
+export type ReceitaFormulario = {
+    id: number;
+    descricao: string;
+    ingredientes: ItemQuantidade[];
+    produz: ItemQuantidade;
+};
+
+function traduzReceitaFormulario(receita: Receita): ReceitaFormulario {
+    const itemProduzido = receita.produz;
+
+    return {
+        id: receita.id,
+        descricao: receita.descricao,
+        ingredientes: receita.ingredientes.map(i => {
+            return {id: i.item.id, qtd: i.qtd};
+        }),
+        produz: {
+            id: itemProduzido.item.id,
+            qtd: itemProduzido.qtd,
+        },
+    };
+}
+
+export type useFormularioReceitaRet = [
+    ...useFormularioEstoqueRet,
+    ReceitaFormulario | null,
+    ItemEstoque[],
+    ItemEstoque[],
+    (receitaVisualizacao: ReceitaFormulario) => Promise<void>,
+    boolean,
+];
+
+export function useFormularioReceita(
+    {itemCasoUso, receitaCasoUso}: CasoUsoInit,
+    id?: number,
+): useFormularioReceitaRet {
+    const novoRegistro = (id ?? 0) <= 0;
+
+    const [cancelar, confirmaGravar, displayMensagem] =
+        useFormularioEstoque(novoRegistro);
+
+    const dispatch = useAppDispatch();
+
+    const {receitaSerializada, receitaFormulario} = useSelector(
+        selectFormularioReceita,
+    );
+
+    const [loading, setLoading] = useState(true);
+
+    const [listaProdutos, setListaProduto] = useState<ItemEstoque[]>([]);
+    const [listaMateriaPrima, setListaMateriaPrima] = useState<ItemEstoque[]>(
+        [],
+    );
+
+    useEffect(() => {
+        async function buscaProduto(): Promise<FormularioReceita> {
+            if (novoRegistro) {
+                return {
+                    receitaSerializada: null,
+                    receitaFormulario: null,
+                };
+            }
+
+            const receita = await receitaCasoUso.buscaReceita(id ?? 0);
+
+            if (!receita) {
+                return {
+                    receitaSerializada: null,
+                    receitaFormulario: null,
+                };
+            }
+
+            return {
+                receitaSerializada: convertToReceitaSerializada(receita),
+                receitaFormulario: traduzReceitaFormulario(receita),
+            };
+        }
+
+        async function buscaInfo() {
+            const [
+                receitaDispatch,
+                listaMateriaPrimaBuscada,
+                listaProdutosBuscada,
+            ] = await Promise.all([
+                buscaProduto(),
+                itemCasoUso.listaMateriasPrimas(),
+                itemCasoUso.listaProdutos(),
+            ]);
+
+            setListaMateriaPrima(listaMateriaPrimaBuscada);
+            setListaProduto(listaProdutosBuscada);
+            dispatch(setFormularioReceita(receitaDispatch));
+
+            setLoading(false);
+        }
+
+        buscaInfo();
+    }, [id, receitaCasoUso, novoRegistro, dispatch, itemCasoUso]);
+
+    async function gravaReceita(receitaVisualizacao: ReceitaFormulario) {
+        if (receitaVisualizacao.descricao.trim() === '') {
+            throw new Error('Informe valor para a nome da receita');
+        }
+
+        if (receitaVisualizacao.produz.id <= 0) {
+            throw new Error(
+                'Selecione um produto que será produzido pela receita',
+            );
+        }
+
+        if (receitaVisualizacao.produz.qtd <= 0) {
+            throw new Error(
+                'Informe a quantidade que será produzida do produto pela receita',
+            );
+        }
+
+        if (
+            receitaVisualizacao.ingredientes.length === 0 ||
+            receitaVisualizacao.ingredientes.every(i => i.id === 0)
+        ) {
+            throw new Error(
+                'Selecione pelo menos um ingrediente para a receita',
+            );
+        }
+
+        if (receitaVisualizacao.ingredientes.some(i => i.qtd <= 0)) {
+            throw new Error(
+                'Informe a quantidade que será utilizada do(s) ingrediente(s)',
+            );
+        }
+
+        const itemEstoqueProduzido = listaProdutos.find(
+            lp => lp.item.id === receitaVisualizacao.produz.id,
+        );
+
+        if (!itemEstoqueProduzido) {
+            throw new Error(
+                'Não foi possivel encontrar o produto que será produzido pela receita',
+            );
+        }
+
+        const ingredientesInfo = receitaVisualizacao.ingredientes.reduce(
+            (valAnterior: {[id: number]: ItemQuantidade}, val) => {
+                valAnterior[val.id] = val;
+
+                return valAnterior;
+            },
+            {},
+        );
+
+        const itensIngredientesEstoque = listaMateriaPrima.filter(
+            lmp => ingredientesInfo[lmp.item.id],
+        );
+
+        if (
+            itensIngredientesEstoque.length !==
+            receitaVisualizacao.ingredientes.length
+        ) {
+            throw new Error(
+                'Não foi possivel encontrar o(s) ingrediente(s) que utilizado para produzir a receita',
+            );
+        }
+
+        const itemProduzido: ItemMensurado = {
+            item: itemEstoqueProduzido.item,
+            medida: itemEstoqueProduzido.medida,
+            qtd: receitaVisualizacao.produz.qtd,
+        };
+
+        const itensIngredientes: ItemReceita[] = itensIngredientesEstoque.map(
+            iie => {
+                let ingredienteQuantidade = ingredientesInfo[iie.item.id];
+
+                return {
+                    item: iie.item,
+                    medida: iie.medida,
+                    qtd: ingredienteQuantidade.qtd,
+                    valorMediaUnidade: iie.valorMediaUnidade,
+                };
+            },
+        );
+
+        let receitaGravar: Receita;
+
+        if (!receitaSerializada) {
+            receitaGravar = new Receita(
+                0,
+                receitaVisualizacao.descricao,
+                itemProduzido,
+                itensIngredientes,
+                new Date(),
+            );
+        } else {
+            receitaGravar = convertToReceita(receitaSerializada);
+
+            receitaGravar.descricao = receitaVisualizacao.descricao;
+            receitaGravar.produz = itemProduzido;
+            receitaGravar.ingredientes = itensIngredientes;
+        }
+
+        receitaGravar.id = await receitaCasoUso.gravaReceita(receitaGravar);
+
+        let receitaDispatch: FormularioReceita = {
+            receitaSerializada: convertToReceitaSerializada(receitaGravar),
+            receitaFormulario: traduzReceitaFormulario(receitaGravar),
+        };
+
+        dispatch(setFormularioReceita(receitaDispatch));
+    }
+
+    return [
+        cancelar,
+        confirmaGravar,
+        displayMensagem,
+        receitaFormulario,
+        listaMateriaPrima,
+        listaProdutos,
+        gravaReceita,
+        loading,
+    ];
 }

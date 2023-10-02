@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {Receita} from '../Entidades/Receita';
 import {ReceitaRepositorio} from '../Repositorios/ReceitaRepositorio';
 
@@ -8,8 +9,19 @@ export class ReceitaCasoUso {
         this._receitaRepositorio = receitaRepositorio;
     }
 
-    // TODO: fazer os testes desse metodod do caso de uso
     async listaReceitas(): Promise<Receita[]> {
         return await this._receitaRepositorio.listaReceitas();
+    }
+
+    async buscaReceita(id: number): Promise<Receita | null> {
+        if (id <= 0) {
+            return null;
+        }
+
+        return _.cloneDeep(await this._receitaRepositorio.buscaReceita(id));
+    }
+
+    async gravaReceita(receita: Receita): Promise<number> {
+        return 0;
     }
 }

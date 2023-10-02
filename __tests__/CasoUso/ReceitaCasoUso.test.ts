@@ -176,7 +176,7 @@ describe('Quando buscaReceita', () => {
 
 describe('Quando gravaReceita', () => {
     it.concurrent(
-        'Caso valore validos deve gravar receita e atualiza valor médio quando não tem outra receita',
+        'Caso valor valido e por unidade menor receita deve gravar e atualiza valor médio do produto produzido',
         async () => {
             const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
@@ -208,6 +208,7 @@ describe('Quando gravaReceita', () => {
             const receitaTeste = ReceitaBuilder.CriaItemTeste(
                 1,
                 new ReceitaBuilder()
+                    .setId(0)
                     .setIngredientes([
                         ItemReceitaBuilder.CriaListaTestes(
                             1,
@@ -235,6 +236,238 @@ describe('Quando gravaReceita', () => {
                 (<jest.Mock>ItemRepositorioStub.gravaProduto).mock.calls[0][0]
                     ?.valorMediaUnidade ?? 0,
             ).toEqual(7);
+        },
+    );
+
+    it.concurrent(
+        'Caso valor valido e media por unidade maior deve gravar receita e não atualiza valor médio do produto produzido',
+        async () => {
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
+
+            ReceitaRepositorioStub.gravaReceita = jest.fn(
+                async (_: Receita) => 1,
+            );
+
+            ItemRepositorioStub.buscaProduto = async (_: number) => {
+                return new ItemEstoqueBuilder()
+                    .setItemInfo(
+                        ItemBuilder.CriaItemTeste(
+                            7,
+                            new ItemBuilder().setTipo(eItemTipo.Produto),
+                        ),
+                    )
+                    .setValorMediaUnidade(4)
+                    .build();
+            };
+
+            ItemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+
+            let ReceitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            const receitaTeste = ReceitaBuilder.CriaItemTeste(
+                1,
+                new ReceitaBuilder()
+                    .setId(0)
+                    .setIngredientes([
+                        ItemReceitaBuilder.CriaListaTestes(
+                            1,
+                            1,
+                            new ItemReceitaBuilder()
+                                .setQtd(2)
+                                .setValorMediaUnidade(5),
+                        )[0],
+                        ItemReceitaBuilder.CriaListaTestes(
+                            2,
+                            1,
+                            new ItemReceitaBuilder()
+                                .setQtd(0.5)
+                                .setValorMediaUnidade(8),
+                        )[0],
+                    ])
+                    .setProduz(new ItemMensuradoBuilder().setQtd(2).build()),
+            );
+
+            let retorno = await ReceitaCasoUsoTest.gravaReceita(receitaTeste);
+
+            expect(retorno).toEqual(1);
+            expect(ReceitaRepositorioStub.gravaReceita).toBeCalled();
+            expect(ItemRepositorioStub.gravaProduto).not.toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso passado valores invalidos então lança excessão',
+        async () => {
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
+
+            ReceitaRepositorioStub.gravaReceita = jest.fn(
+                async (_: Receita) => 1,
+            );
+
+            ItemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+
+            ItemRepositorioStub.buscaProduto = async (_: number) => {
+                return new ItemEstoqueBuilder().build();
+            };
+
+            let receitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            async function assertLancaExcessaoValorInvalido(
+                receitaGrava: Receita,
+            ) {
+                await expect(() =>
+                    receitaCasoUsoTest.gravaReceita(receitaGrava),
+                ).rejects.toThrow();
+
+                expect(ReceitaRepositorioStub.gravaReceita).not.toBeCalled();
+                expect(ItemRepositorioStub.gravaProduto).not.toBeCalled();
+            }
+
+            const receitaBuilder = new ReceitaBuilder()
+                .setIngredientes([
+                    ItemReceitaBuilder.CriaListaTestes(
+                        1,
+                        1,
+                        new ItemReceitaBuilder()
+                            .setQtd(2)
+                            .setValorMediaUnidade(5),
+                    )[0],
+                    ItemReceitaBuilder.CriaListaTestes(
+                        2,
+                        1,
+                        new ItemReceitaBuilder()
+                            .setQtd(0.5)
+                            .setValorMediaUnidade(8),
+                    )[0],
+                ])
+                .setProduz(new ItemMensuradoBuilder().setQtd(2).build());
+
+            // Descricao item vazia
+            let receitaTesteGrava = ReceitaBuilder.CriaItemTeste(
+                0,
+                receitaBuilder,
+            );
+
+            receitaTesteGrava.descricao = '';
+            await assertLancaExcessaoValorInvalido(receitaTesteGrava);
+
+            // Lista ingredientes vazia
+            receitaTesteGrava = ReceitaBuilder.CriaItemTeste(0, receitaBuilder);
+
+            receitaTesteGrava.ingredientes = [];
+            await assertLancaExcessaoValorInvalido(receitaTesteGrava);
+
+            // Lista ingredientes qtds invalidas
+            receitaTesteGrava = ReceitaBuilder.CriaItemTeste(0, receitaBuilder);
+
+            receitaTesteGrava.ingredientes = ItemReceitaBuilder.CriaListaTestes(
+                1,
+                1,
+                new ItemReceitaBuilder().setQtd(0),
+            );
+
+            await assertLancaExcessaoValorInvalido(receitaTesteGrava);
+
+            // Lista ingredientes ids invalidos
+            receitaTesteGrava = ReceitaBuilder.CriaItemTeste(0, receitaBuilder);
+
+            receitaTesteGrava.ingredientes = ItemReceitaBuilder.CriaListaTestes(
+                0,
+                1,
+            );
+
+            await assertLancaExcessaoValorInvalido(receitaTesteGrava);
+        },
+    );
+
+    it.concurrent(
+        'Caso os repositórios lance uma excessão então deixa lançar',
+        async () => {
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
+
+            // Quando repositorio receita lança exceção
+            ReceitaRepositorioStub.gravaReceita = async (_: Receita) => {
+                throw new Error();
+            };
+
+            ItemRepositorioStub.gravaProduto = async (_: ItemEstoque) => 1;
+
+            ItemRepositorioStub.buscaProduto = async (_: number) => {
+                return new ItemEstoqueBuilder()
+                    .setValorMediaUnidade(77)
+                    .build();
+            };
+
+            let receitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            const receitaTeste = ReceitaBuilder.CriaItemTeste(
+                1,
+                new ReceitaBuilder()
+                    .setId(0)
+                    .setIngredientes([
+                        ItemReceitaBuilder.CriaListaTestes(
+                            1,
+                            1,
+                            new ItemReceitaBuilder()
+                                .setQtd(2)
+                                .setValorMediaUnidade(5),
+                        )[0],
+                        ItemReceitaBuilder.CriaListaTestes(
+                            2,
+                            1,
+                            new ItemReceitaBuilder()
+                                .setQtd(0.5)
+                                .setValorMediaUnidade(8),
+                        )[0],
+                    ])
+                    .setProduz(new ItemMensuradoBuilder().setQtd(2).build()),
+            );
+
+            await expect(() =>
+                receitaCasoUsoTest.gravaReceita(receitaTeste),
+            ).rejects.toThrow();
+
+            // Quando repositorio item lança exceção
+            ReceitaRepositorioStub.gravaReceita = async (_: Receita) => 1;
+
+            ItemRepositorioStub.gravaProduto = async (_: ItemEstoque) => {
+                throw new Error();
+            };
+
+            ItemRepositorioStub.buscaProduto = async (_: number) => {
+                return new ItemEstoqueBuilder()
+                    .setValorMediaUnidade(77)
+                    .build();
+            };
+
+            await expect(() =>
+                receitaCasoUsoTest.gravaReceita(receitaTeste),
+            ).rejects.toThrow();
+
+            ReceitaRepositorioStub.gravaReceita = async (_: Receita) => 1;
+
+            ItemRepositorioStub.gravaProduto = async (_: ItemEstoque) => 1;
+
+            ItemRepositorioStub.buscaProduto = async (_: number) => {
+                throw new Error();
+            };
+
+            await expect(() =>
+                receitaCasoUsoTest.gravaReceita(receitaTeste),
+            ).rejects.toThrow();
         },
     );
 });

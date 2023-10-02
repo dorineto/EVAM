@@ -28,6 +28,51 @@ export class ReceitaCasoUso {
     }
 
     async gravaReceita(receita: Receita): Promise<number> {
-        return 0;
+        if (receita.descricao.trim() === '') {
+            throw new Error('A descrição da receita não pode ser vazia');
+        }
+
+        if (receita.ingredientes.length === 0) {
+            throw new Error('Tem que ter no minimo um ingrediente');
+        }
+
+        if (receita.ingredientes.some(i => i.item.id <= 0)) {
+            throw new Error(
+                'Não é possivel encontrar o(s) ingrediente(s) informado(s)',
+            );
+        }
+
+        if (receita.ingredientes.some(i => i.qtd <= 0)) {
+            throw new Error(
+                'A quantidade utilizada de ingrediente tem que ser maior que 0',
+            );
+        }
+
+        const produtoProduzido = await this._itemRepositorio.buscaProduto(
+            receita.produz.item.id,
+        );
+
+        if (!produtoProduzido) {
+            throw Error('Não foi possivel encontrar o produto produzido');
+        }
+
+        const totalValorIngredientesGastos = receita.ingredientes.reduce(
+            (prevVal, currVal) => {
+                return currVal.qtd * currVal.valorMediaUnidade + prevVal;
+            },
+            0,
+        );
+
+        const valorUnidadeCalculado =
+            totalValorIngredientesGastos / receita.produz.qtd;
+
+        // Para sempre ter o menor valor de media
+        if (valorUnidadeCalculado < produtoProduzido.valorMediaUnidade) {
+            produtoProduzido.valorMediaUnidade = valorUnidadeCalculado;
+
+            await this._itemRepositorio.gravaProduto(produtoProduzido);
+        }
+
+        return await this._receitaRepositorio.gravaReceita(receita);
     }
 }

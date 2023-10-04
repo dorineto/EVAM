@@ -22,6 +22,7 @@ export function setupStubsReceitaRepositorio(): [ReceitaRepositorio] {
             listaReceitas: jest.fn(async () => []),
             buscaReceita: jest.fn(async (_: number) => null),
             gravaReceita: jest.fn(async (_: Receita) => 0),
+            deletaReceita: jest.fn(async (_: number) => {}),
         },
     ];
 }
@@ -467,6 +468,74 @@ describe('Quando gravaReceita', () => {
 
             await expect(() =>
                 receitaCasoUsoTest.gravaReceita(receitaTeste),
+            ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando deletaReceita', () => {
+    it.concurrent(
+        'Caso passado valores validos então deleta registro',
+        async () => {
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
+
+            ReceitaRepositorioStub.deletaReceita = jest.fn(async function (
+                _: number,
+            ) {});
+
+            let receitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            await receitaCasoUsoTest.deletaReceita(1);
+
+            expect(ReceitaRepositorioStub.deletaReceita).toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso passe valores invalidos deve retornar sem chamar o repositorio',
+        async () => {
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
+
+            ReceitaRepositorioStub.deletaReceita = jest.fn(async function (
+                _: number,
+            ) {});
+
+            let receitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            // Id seja 0
+            receitaCasoUsoTest.deletaReceita(0);
+            expect(ReceitaRepositorioStub.deletaReceita).not.toBeCalled();
+
+            // Id seja negativo
+            receitaCasoUsoTest.deletaReceita(-1);
+            expect(ReceitaRepositorioStub.deletaReceita).not.toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso o repositório lance uma excessão então deixa lançar',
+        async () => {
+            const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
+
+            ReceitaRepositorioStub.deletaReceita = jest.fn(async function (
+                _: number,
+            ) {
+                throw new Error();
+            });
+
+            let receitaCasoUsoTest = new ReceitaCasoUso(
+                ReceitaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            await expect(() =>
+                receitaCasoUsoTest.deletaReceita(1),
             ).rejects.toThrow();
         },
     );

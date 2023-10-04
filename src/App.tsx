@@ -133,7 +133,7 @@ const itemRepositorio = new ItemRepositorioStub();
 const casoUsoInit: CasoUsoInit = {
     itemCasoUso: new ItemCasoUso(itemRepositorio),
     receitaCasoUso: new ReceitaCasoUso(
-        new ReceitaRepositorioStub(),
+        new ReceitaRepositorioStub(itemRepositorio),
         itemRepositorio,
     ),
 };

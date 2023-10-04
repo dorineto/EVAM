@@ -29,6 +29,7 @@ import {
     ReceitaFormulario,
     useDeletaMateriaPrima,
     useDeletaProduto,
+    useDeletaReceita,
     useFormularioMateriaPrima,
     useFormularioProduto,
     useFormularioReceita,
@@ -1991,8 +1992,7 @@ export function EstoqueModalOpcoesReceita({
 }: EstoqueModalOpcoesProp): React.JSX.Element {
     const casoUsoInit = useContext(CasoUso);
 
-    //const [deleta] = useDeletaProduto(casoUsoInit);
-    const [deleta] = [async (_: number) => {}];
+    const [deleta] = useDeletaReceita(casoUsoInit);
     const natigation = useNavigation<EstoqueGerenciamentoProps['navigation']>();
 
     function editar() {

@@ -75,4 +75,12 @@ export class ReceitaCasoUso {
 
         return await this._receitaRepositorio.gravaReceita(receita);
     }
+
+    async deletaReceita(id: number): Promise<void> {
+        if (id <= 0) {
+            return;
+        }
+
+        await this._receitaRepositorio.deletaReceita(id);
+    }
 }

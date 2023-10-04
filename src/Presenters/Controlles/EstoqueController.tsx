@@ -626,7 +626,11 @@ export function useFormularioReceita(
             receitaGravar.ingredientes = itensIngredientes;
         }
 
-        receitaGravar.id = await receitaCasoUso.gravaReceita(receitaGravar);
+        const retorno = await receitaCasoUso.gravaReceita(receitaGravar);
+
+        if (!receitaGravar.id) {
+            receitaGravar.id = retorno;
+        }
 
         let receitaDispatch: FormularioReceita = {
             receitaSerializada: convertToReceitaSerializada(receitaGravar),
@@ -646,4 +650,14 @@ export function useFormularioReceita(
         gravaReceita,
         loading,
     ];
+}
+
+export function useDeletaReceita({
+    receitaCasoUso,
+}: CasoUsoInit): useDeletaEstoque {
+    async function deleta(id: number) {
+        receitaCasoUso.deletaReceita(id);
+    }
+
+    return [deleta];
 }

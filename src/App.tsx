@@ -42,6 +42,7 @@ import {
     faPlus,
     faMinus,
     faCircle,
+    faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import {StatusBar, View} from 'react-native';
 import {ItemCasoUso} from './CasosUsos/ItemCasoUso';
@@ -63,6 +64,7 @@ library.add(
     faPlus,
     faMinus,
     faCircle,
+    faXmark,
 );
 
 const Tab = createBottomTabNavigator();
@@ -149,7 +151,7 @@ function App(): JSX.Element {
                     <NavigationContainer>
                         <Tab.Navigator
                             screenOptions={renderIconsBar}
-                            initialRouteName="Dashboard"
+                            initialRouteName="Estoque"
                             backBehavior="history">
                             <Tab.Screen
                                 name="Dashboard"

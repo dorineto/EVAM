@@ -977,6 +977,9 @@ const styleFormularioUtil = StyleSheet.create({
         borderRadius: 15,
         padding: 10,
         minWidth: '90%', // Não sei, mas só respeita quando é minwidth, talvés depois pesquisar melhor o que está acontecendo
+        width: '90%',
+        // maxWidth: '90%',
+        //position: 'relative',
     },
     titleFormulario: {
         backgroundColor: '#8E49A9',
@@ -1430,6 +1433,7 @@ export function ItemQuantidadeInput({
                 styleUtil.alignCenter,
                 styleFormularioUtil.containerDropdownList,
                 styleFormularioUtil.containerDropdownListVertical,
+                {backgroundColor: 'red'}
             ]}>
             <SelectList
                 setSelected={onDropDownlistItemChange}
@@ -1448,6 +1452,7 @@ export function ItemQuantidadeInput({
                 boxStyles={{
                     ...styleFormularioUtil.inputDropdownList,
                     ...styleFormularioUtil.inputDropdownListVertical,
+                    //width: '100%',
                 }}
                 dropdownTextStyles={styleUtil.contentText}
                 inputStyles={styleUtil.contentText}
@@ -1463,11 +1468,10 @@ export function ItemQuantidadeInput({
                 style={[
                     styleFormularioUtil.inputFormulario,
                     styleUtil.contentText,
-                    styleFormularioUtil.inputSideDropdownList,
                 ]}
             />
             {itemSelecionado?.medida.abreviacao && (
-                <Text>em {itemSelecionado?.medida.abreviacao}</Text>
+                <Text>{itemSelecionado?.medida.abreviacao}</Text>
             )}
         </View>
     );
@@ -1535,6 +1539,11 @@ export function MultipleItemQuantidade({
             {listaItensQuantidade.map(val => {
                 return (
                     <View key={val.id}>
+                        <ButtonWithStyle
+                            title={<FontAwesomeIcon icon={['fas', 'xmark']} />}
+                            onPress={() => handleRemove(val.id)}
+                            style={[styleUtil.button, styleUtil.cancelaButton]}
+                        />
                         <ItemQuantidadeInput
                             itens={listaItens}
                             tipo="item"
@@ -1543,16 +1552,11 @@ export function MultipleItemQuantidade({
                                 handleChangeItemQuantidadeInput(val.id, valor)
                             }
                         />
-                        <ButtonWithStyle
-                            title="REMOVE"
-                            onPress={() => handleRemove(val.id)}
-                            style={[styleUtil.button, styleUtil.actionButton]}
-                        />
                     </View>
                 );
             })}
             <ButtonWithStyle
-                title="ADD"
+                title={<FontAwesomeIcon icon={['fas', 'plus']} />}
                 onPress={handleAdd}
                 style={[styleUtil.button, styleUtil.actionButton]}
             />

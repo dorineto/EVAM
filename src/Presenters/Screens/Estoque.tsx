@@ -169,6 +169,8 @@ function EstoqueGerenciamento({
             contentContainerStyle={[
                 styleScreenUtil.alignCenter,
                 styleEstoqueGerenciamento.containerEstoqueGerenciamento,
+                //{width: '100%'}
+                {backgroundColor: 'yellow'},
             ]}>
             {formulario}
         </ScrollView>
@@ -391,8 +393,16 @@ const EstoqueStack = createNativeStackNavigator<EstoqueParamList>();
 function Estoque() {
     return (
         <EstoqueStack.Navigator
-            screenOptions={{headerShown: false}}
-            initialRouteName="EstoqueVisualizacao">
+            screenOptions={{
+                headerShown: false,
+                contentStyle: {
+                    width: '100%',
+                    backgroundColor: 'red',
+                    display: undefined,
+                },
+            }}
+            //initialRouteName="EstoqueVisualizacao">
+            initialRouteName="EstoqueGerenciamento">
             <EstoqueStack.Group>
                 <EstoqueStack.Screen
                     name="EstoqueVisualizacao"
@@ -401,6 +411,10 @@ function Estoque() {
                 <EstoqueStack.Screen
                     name="EstoqueGerenciamento"
                     component={EstoqueGerenciamento}
+                    initialParams={{
+                        componenteEstoqueTipo: eComponenteEstoqueTipo.Receita,
+                        id: 1,
+                    }}
                 />
             </EstoqueStack.Group>
             <EstoqueStack.Group

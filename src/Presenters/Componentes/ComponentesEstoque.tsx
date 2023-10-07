@@ -9,6 +9,7 @@ import {
     StyleSheet,
     TouchableOpacityProps,
     ScrollView,
+    DimensionValue,
 } from 'react-native';
 import {
     ItemEstoque,
@@ -90,6 +91,12 @@ export const styleUtil = StyleSheet.create({
         lineHeight: 20.8,
         padding: 10,
     },
+    buttonIcon: {
+        width: undefined,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     cancelaButton: {
         backgroundColor: '#D84061',
         borderColor: '#CE3657',
@@ -99,6 +106,10 @@ export const styleUtil = StyleSheet.create({
         backgroundColor: '#B180C5',
         borderColor: '#AF84C0',
         borderWidth: 2,
+    },
+    textAlignCenter: {
+        textAlign: 'center',
+        verticalAlign: 'middle',
     },
 });
 
@@ -977,9 +988,6 @@ const styleFormularioUtil = StyleSheet.create({
         borderRadius: 15,
         padding: 10,
         minWidth: '90%', // Não sei, mas só respeita quando é minwidth, talvés depois pesquisar melhor o que está acontecendo
-        width: '90%',
-        // maxWidth: '90%',
-        //position: 'relative',
     },
     titleFormulario: {
         backgroundColor: '#8E49A9',
@@ -1349,6 +1357,8 @@ export type ItemQuantidadeInputProps = {
     tipo: 'produto' | 'item';
     valorInicial?: ItemQuantidade;
     onChange?: (value: ItemQuantidade) => void;
+    widthDropDownList?: DimensionValue;
+    placeholderQtdInput?: string;
 };
 
 export function ItemQuantidadeInput({
@@ -1356,6 +1366,8 @@ export function ItemQuantidadeInput({
     tipo,
     valorInicial,
     onChange,
+    widthDropDownList,
+    placeholderQtdInput,
 }: ItemQuantidadeInputProps): React.JSX.Element {
     const itensInfo = useMemo(() => {
         const listaItens = itens.map(i => {
@@ -1385,7 +1397,9 @@ export function ItemQuantidadeInput({
     );
 
     const [qtdInp, setQtdInp] = useState(
-        convertNumberToMaskedNumber(valorInicial?.qtd),
+        valorInicial?.qtd !== 0
+            ? convertNumberToMaskedNumber(valorInicial?.qtd)
+            : '',
     );
 
     function geraItemQuantidade(id: number, qtd: number): ItemQuantidade {
@@ -1433,7 +1447,6 @@ export function ItemQuantidadeInput({
                 styleUtil.alignCenter,
                 styleFormularioUtil.containerDropdownList,
                 styleFormularioUtil.containerDropdownListVertical,
-                {backgroundColor: 'red'}
             ]}>
             <SelectList
                 setSelected={onDropDownlistItemChange}
@@ -1446,36 +1459,82 @@ export function ItemQuantidadeInput({
                 save="key"
                 search={true}
                 dropdownStyles={{
-                    ...styleFormularioUtil.inputDropdownList,
-                    ...styleFormularioUtil.inputDropdownListVertical,
+                    ...styleItemQuantidadeInput.inputDropdownList,
+                    width: widthDropDownList,
                 }}
                 boxStyles={{
-                    ...styleFormularioUtil.inputDropdownList,
-                    ...styleFormularioUtil.inputDropdownListVertical,
-                    //width: '100%',
+                    ...styleItemQuantidadeInput.inputDropdownList,
+                    width: widthDropDownList,
                 }}
-                dropdownTextStyles={styleUtil.contentText}
-                inputStyles={styleUtil.contentText}
+                dropdownTextStyles={{
+                    ...styleUtil.contentText,
+                    width: widthDropDownList,
+                }}
+                inputStyles={{
+                    ...styleUtil.contentText,
+                    width: widthDropDownList,
+                }}
+                dropdownItemStyles={
+                    styleItemQuantidadeInput.inputDropdownListDropdownItem
+                }
                 notFoundText="Não encontrado"
                 searchPlaceholder="Pesquisar"
             />
-            <MaskInput
-                mask={QtdMask}
-                placeholder="Quantidade estoque"
-                value={qtdInp}
-                onChangeText={onInputQtdChange}
-                keyboardType="numeric"
+            <View
                 style={[
-                    styleFormularioUtil.inputFormulario,
-                    styleUtil.contentText,
-                ]}
-            />
-            {itemSelecionado?.medida.abreviacao && (
-                <Text>{itemSelecionado?.medida.abreviacao}</Text>
-            )}
+                    styleUtil.alignCenter,
+                    {flexDirection: 'row', width: '100%'},
+                ]}>
+                <MaskInput
+                    mask={QtdMask}
+                    placeholder={placeholderQtdInput}
+                    value={qtdInp}
+                    onChangeText={onInputQtdChange}
+                    keyboardType="numeric"
+                    style={[
+                        styleFormularioUtil.inputFormulario,
+                        styleUtil.contentText,
+                        {width: undefined, flexGrow: 0.6},
+                    ]}
+                />
+                {itemSelecionado?.medida.abreviacao && (
+                    <Text
+                        style={[
+                            styleUtil.contentText,
+                            styleUtil.button,
+                            styleUtil.actionButton,
+                            styleUtil.textAlignCenter,
+                            {
+                                width: undefined,
+                                flexGrow: 0.4,
+                            },
+                        ]}>
+                        {itemSelecionado?.medida.abreviacao}
+                    </Text>
+                )}
+            </View>
         </View>
     );
 }
+
+const styleItemQuantidadeInput = StyleSheet.create({
+    inputDropdownList: {
+        backgroundColor: '#F5F5F5',
+        borderColor: '#E7E7E7',
+        borderWidth: 2,
+        padding: 10,
+        borderRadius: 15,
+    },
+    inputDropdownListDropdownItem: {
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    abreviacaoContainer: {
+        width: undefined,
+        flexGrow: 0.4,
+    },
+});
 
 export type MultipleItemQuantidadeProp = {
     title: string;
@@ -1534,15 +1593,41 @@ export function MultipleItemQuantidade({
     }
 
     return (
-        <View style={[styleUtil.alignCenter]}>
-            <Text style={[styleUtil.subTitle]}>{title}</Text>
+        <View
+            style={[
+                styleUtil.alignCenter,
+                styleMultipleItemQuantidade.container,
+            ]}>
+            <Text
+                style={[
+                    styleUtil.subTitle,
+                    styleMultipleItemQuantidade.titleElement,
+                ]}>
+                {title}
+            </Text>
             {listaItensQuantidade.map(val => {
                 return (
-                    <View key={val.id}>
+                    <View
+                        key={val.id}
+                        style={[
+                            styleUtil.alignCenter,
+                            styleMultipleItemQuantidade.containerInputs,
+                        ]}>
                         <ButtonWithStyle
-                            title={<FontAwesomeIcon icon={['fas', 'xmark']} />}
+                            title={
+                                <FontAwesomeIcon
+                                    icon={['fas', 'xmark']}
+                                    size={styleUtil.button.fontSize}
+                                    color={styleUtil.button.color}
+                                />
+                            }
                             onPress={() => handleRemove(val.id)}
-                            style={[styleUtil.button, styleUtil.cancelaButton]}
+                            style={[
+                                styleUtil.button,
+                                styleUtil.buttonIcon,
+                                styleUtil.cancelaButton,
+                                styleMultipleItemQuantidade.removerBtn,
+                            ]}
                         />
                         <ItemQuantidadeInput
                             itens={listaItens}
@@ -1551,18 +1636,62 @@ export function MultipleItemQuantidade({
                             onChange={valor =>
                                 handleChangeItemQuantidadeInput(val.id, valor)
                             }
+                            widthDropDownList={'95%'}
+                            placeholderQtdInput="Quantidade utilizada"
                         />
                     </View>
                 );
             })}
             <ButtonWithStyle
-                title={<FontAwesomeIcon icon={['fas', 'plus']} />}
+                title={
+                    <FontAwesomeIcon
+                        icon={['fas', 'plus']}
+                        size={styleUtil.button.fontSize * 1.3}
+                        color={styleUtil.button.color}
+                    />
+                }
                 onPress={handleAdd}
-                style={[styleUtil.button, styleUtil.actionButton]}
+                style={[
+                    styleUtil.button,
+                    styleUtil.buttonIcon,
+                    styleUtil.actionButton,
+                ]}
             />
         </View>
     );
 }
+
+const styleMultipleItemQuantidade = StyleSheet.create({
+    container: {
+        width: '100%',
+        backgroundColor: '#D8D8D8',
+        borderColor: '#CECECE',
+        borderWidth: 2,
+        borderRadius: 15,
+        paddingVertical: 10,
+        paddingHorizontal: 5,
+    },
+    containerInputs: {
+        width: '100%',
+        backgroundColor: '#C4C4C4',
+        borderColor: '#BABABA',
+        borderWidth: 2,
+        borderRadius: 15,
+        padding: 10,
+    },
+    removerBtn: {
+        alignSelf: 'flex-end',
+    },
+    titleElement: {
+        color: '#fff',
+        backgroundColor: '#A972BE',
+        borderColor: '#9F68B4',
+        borderWidth: 2,
+        borderRadius: 20,
+        width: '100%',
+        padding: 10,
+    },
+});
 
 interface FormularioReceitaLoadedProp extends FormularioEstoqueProp {
     receitaFormulario: ReceitaFormulario | null;
@@ -1713,6 +1842,8 @@ function FormularioReceitaLoaded({
                     valorInicial={receitaFormulario?.produz}
                     tipo="produto"
                     onChange={setItemProduzido}
+                    widthDropDownList={'95%'}
+                    placeholderQtdInput="Quantidade produzido"
                 />
                 <MultipleItemQuantidade
                     title="Itens Receita"

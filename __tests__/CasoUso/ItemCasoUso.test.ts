@@ -49,7 +49,7 @@ describe('Quando listaMateriasPrimas', () => {
     );
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -120,7 +120,7 @@ describe('Quando buscaMateriaPrima', () => {
     });
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -164,7 +164,7 @@ describe('Quando gravaMateriaPrima', () => {
     );
 
     it.concurrent(
-        'Caso passado valores invalidos então lança excessão',
+        'Caso passado valores invalidos então lança exceção',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -205,7 +205,7 @@ describe('Quando gravaMateriaPrima', () => {
     );
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -264,7 +264,7 @@ describe('Quando deletaMateriaPrima', () => {
     );
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -322,7 +322,7 @@ describe('Quando listaProdutos', () => {
     );
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -395,7 +395,7 @@ describe('Quando buscaProduto', () => {
     });
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -443,7 +443,7 @@ describe('Quando gravaProduto', () => {
     );
 
     it.concurrent(
-        'Caso passado valores invalidos então lança excessão',
+        'Caso passado valores invalidos então lança exceção',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -493,7 +493,7 @@ describe('Quando gravaProduto', () => {
     );
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -555,7 +555,7 @@ describe('Quando deletaProduto', () => {
     );
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [itemRepositorioStub] = setupStubsItemRepositorio();
 
@@ -676,8 +676,15 @@ export class ItemEstoqueBuilder {
         id: number = 1,
         itemBuilder: ItemBuilder | null = null,
         itemEstoqueBuilder: ItemEstoqueBuilder | null = null,
+        qtdEstoque: number = 1,
     ): ItemEstoque {
-        return this.CriaListaTeste(id, 1, itemBuilder, itemEstoqueBuilder)[0];
+        return this.CriaListaTeste(
+            id,
+            1,
+            itemBuilder,
+            itemEstoqueBuilder,
+            qtdEstoque,
+        )[0];
     }
 
     static CriaListaTeste(
@@ -685,6 +692,7 @@ export class ItemEstoqueBuilder {
         quantity: number = 1,
         itemBuilder: ItemBuilder | null = null,
         itemEstoqueBuilder: ItemEstoqueBuilder | null = null,
+        qtdEstoque: number = 1,
     ): ItemEstoque[] {
         const itemBuilderUtilizado = itemBuilder ?? new ItemBuilder();
         const itemEstoqueBuilderUtilizado =
@@ -699,7 +707,7 @@ export class ItemEstoqueBuilder {
             retorno.push(
                 itemEstoqueBuilderUtilizado
                     .setItemInfo(item)
-                    .setQtd(1)
+                    .setQtd(qtdEstoque)
                     .setValorMediaUnidade(5.5)
                     .build(),
             );

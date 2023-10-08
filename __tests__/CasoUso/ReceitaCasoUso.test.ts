@@ -31,8 +31,6 @@ function setupStubs(): [ReceitaRepositorio, ItemRepositorio] {
     return [...setupStubsReceitaRepositorio(), ...setupStubsItemRepositorio()];
 }
 
-//setupStubsItemRepositorio
-
 describe('Quando listaReceitas', () => {
     it.concurrent(
         'Caso retorne registros do repositorio então retorna os registros',
@@ -75,7 +73,7 @@ describe('Quando listaReceitas', () => {
     );
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
@@ -155,7 +153,7 @@ describe('Quando buscaReceita', () => {
     });
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
@@ -302,7 +300,7 @@ describe('Quando gravaReceita', () => {
     );
 
     it.concurrent(
-        'Caso passado valores invalidos então lança excessão',
+        'Caso passado valores invalidos então lança exceção',
         async () => {
             const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
@@ -392,7 +390,7 @@ describe('Quando gravaReceita', () => {
     );
 
     it.concurrent(
-        'Caso os repositórios lance uma excessão então deixa lançar',
+        'Caso os repositórios lance uma exceção então deixa lançar',
         async () => {
             const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 
@@ -519,7 +517,7 @@ describe('Quando deletaReceita', () => {
     );
 
     it.concurrent(
-        'Caso o repositório lance uma excessão então deixa lançar',
+        'Caso o repositório lance uma exceção então deixa lançar',
         async () => {
             const [ReceitaRepositorioStub, ItemRepositorioStub] = setupStubs();
 

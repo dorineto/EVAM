@@ -3,7 +3,6 @@ import {PropsWithChildren} from 'react';
 import {
     View,
     Text,
-    Button,
     TouchableOpacity,
     TextInput,
     StyleSheet,
@@ -16,7 +15,6 @@ import {
     ItemMensurado,
     ItemOrdem,
     ItemReceita,
-    eItemTipo,
 } from '../../Entidades/Item';
 import {useNavigation} from '@react-navigation/native';
 import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
@@ -27,11 +25,14 @@ import {QtdMask} from './Utils';
 import {
     ItemEstoqueFormulario,
     ItemQuantidade,
+    OrdemCompraFormulario,
     ReceitaFormulario,
     useDeletaMateriaPrima,
+    useDeletaOrdemCompra,
     useDeletaProduto,
     useDeletaReceita,
     useFormularioMateriaPrima,
+    useFormularioOrdemCompra,
     useFormularioProduto,
     useFormularioReceita,
 } from '../Controlles/EstoqueController';
@@ -39,8 +40,9 @@ import {CasoUso} from '../../App';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {IconProp} from '@fortawesome/fontawesome-svg-core';
 import {styleScreenUtil} from '../Screens/Estoque';
-import {Receita as ReceitaDominio} from '../../Entidades/Receita';
+import {Receita} from '../../Entidades/Receita';
 import _ from 'lodash';
+import {OrdemCompra} from '../../Entidades/OrdemCompra';
 
 export type EstoqueContainerProps = {
     title: string;
@@ -430,7 +432,7 @@ const styleRegistroItemListaItem = StyleSheet.create({
 });
 
 export type ReceitaRegistroProp = {
-    receita: ReceitaDominio;
+    receita: Receita;
 };
 
 export function ReceitaRegistro({
@@ -540,6 +542,199 @@ const styleReceitaRegistro = StyleSheet.create({
         backgroundColor: '#E8D7EE',
         borderRadius: 15,
         padding: 10,
+    },
+});
+
+function formataDataDisplay(data: Date) {
+    if (!data) {
+        return '';
+    }
+
+    const formatedDay = (data.getDate() < 10 ? '0' : '') + data.getDate();
+    const formatedMonth =
+        (data.getMonth() + 1 < 10 ? '0' : '') + (data.getMonth() + 1);
+
+    return `${formatedDay}/${formatedMonth}/${data.getFullYear()}`;
+}
+
+export type OrdemCompraRegistroProp = {
+    compra: OrdemCompra;
+};
+
+export function OrdemCompraRegistro({
+    compra,
+}: OrdemCompraRegistroProp): React.JSX.Element {
+    const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+    const [expandido, setExpandido] = useState(false);
+
+    function opcoes() {
+        navigate('EstoqueModalOpcoes', {
+            tipo: eComponenteEstoqueTipo.Compras,
+            id: compra.id,
+        });
+    }
+
+    const descricaoOrdemCompra = `#${compra.id} - Compra ${formataDataDisplay(
+        compra.inclusao,
+    )}`;
+
+    const totalCompra = `R$ ${convertNumberToMaskedNumber(compra.totalCompra)}`;
+
+    return (
+        <TouchableOpacity onLongPress={opcoes}>
+            {!expandido ? (
+                <View style={[styleOrdemCompraRegistro.container]}>
+                    <View
+                        style={[styleOrdemCompraRegistro.containerBtnExpande]}>
+                        <ButtonExpande
+                            onPress={() => setExpandido(true)}
+                            expandido={false}
+                        />
+                    </View>
+                    <View
+                        style={[
+                            styleUtil.alignCenter,
+                            styleOrdemCompraRegistro.infoContainer,
+                        ]}>
+                        <Text
+                            style={[
+                                styleUtil.contentText,
+                                styleOrdemCompraRegistro.descricaoRegistro,
+                            ]}>
+                            {descricaoOrdemCompra}
+                        </Text>
+                        <View
+                            style={[
+                                styleOrdemCompraRegistro.sideInfoContainer,
+                            ]}>
+                            <Text
+                                style={[
+                                    styleUtil.contentText,
+                                    styleOrdemCompraRegistro.badgeValor,
+                                ]}>
+                                {totalCompra}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+            ) : (
+                <View
+                    style={[
+                        styleOrdemCompraRegistro.container,
+                        styleOrdemCompraRegistro.expandidoContainer,
+                    ]}>
+                    <Text
+                        style={[
+                            styleOrdemCompraRegistro.infoContainer,
+                            styleOrdemCompraRegistro.expandidoDescricaoRegistro,
+                            styleUtil.subTitle,
+                        ]}>
+                        {descricaoOrdemCompra}
+                    </Text>
+                    <Text
+                        style={[
+                            styleUtil.contentText,
+                            styleOrdemCompraRegistro.totalValor,
+                        ]}>
+                        Total: {totalCompra}
+                    </Text>
+                    <View
+                        style={[
+                            styleUtil.alignCenter,
+                            styleOrdemCompraRegistro.itensContainer,
+                        ]}>
+                        <Text style={[styleUtil.nestedSubTitle]}>
+                            Itens Comprados
+                        </Text>
+                        {compra.itensComprados.map(i => (
+                            <RegistroItemListaItem
+                                item={i}
+                                key={i.item.id}
+                                mostraValor
+                            />
+                        ))}
+                    </View>
+                    <ButtonExpande
+                        onPress={() => setExpandido(false)}
+                        expandido={true}
+                    />
+                </View>
+            )}
+        </TouchableOpacity>
+    );
+}
+
+const styleOrdemCompraRegistro = StyleSheet.create({
+    container: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'stretch',
+        backgroundColor: '#BFAEC6',
+        gap: 5,
+        width: '100%',
+        borderRadius: 15,
+        marginBottom: 10,
+    },
+    expandidoContainer: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        padding: 5,
+        gap: 10,
+    },
+    infoContainer: {
+        width: '85%',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'stretch',
+        gap: undefined,
+    },
+    sideInfoContainer: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-end',
+        flexDirection: 'row',
+        top: 0,
+        right: 0,
+        width: '34%',
+    },
+    descricaoRegistro: {
+        paddingVertical: 5,
+        width: '66%',
+    },
+    badgeValor: {
+        alignSelf: 'flex-start',
+        backgroundColor: '#E8D7EE',
+        borderColor: '#DECDE4',
+        borderWidth: 2,
+        paddingHorizontal: 10,
+        borderTopRightRadius: 15,
+        borderBottomLeftRadius: 15,
+        maxWidth: '100%',
+    },
+    totalValor: {
+        backgroundColor: '#B180C5',
+        padding: 10,
+        color: '#fff',
+        borderRadius: 15,
+    },
+    expandidoDescricaoRegistro: {
+        flexGrow: undefined,
+        width: '100%',
+        backgroundColor: '#B180C5',
+        padding: 10,
+        color: '#fff',
+        borderRadius: 15,
+    },
+    itensContainer: {
+        backgroundColor: '#E8D7EE',
+        borderRadius: 15,
+        padding: 10,
+    },
+    containerBtnExpande: {
+        paddingVertical: 5,
+        paddingLeft: 5,
     },
 });
 
@@ -1034,6 +1229,12 @@ const styleFormularioUtil = StyleSheet.create({
     buttonContainerFormulario: {
         width: '90%',
     },
+    totalValor: {
+        backgroundColor: '#B180C5',
+        padding: 10,
+        color: '#fff',
+        borderRadius: 15,
+    },
 });
 
 export function FormularioMateriaPrima({
@@ -1345,7 +1546,12 @@ export function FormularioProduto({
 }
 
 function convertMaskedNumberToNumber(maskedNumber: string): number {
-    return Number(maskedNumber.replaceAll('.', '').replace(',', '.').trim());
+    return Number(
+        maskedNumber
+            .replaceAll(/\.|R\$/g, '')
+            .replace(',', '.')
+            .trim(),
+    );
 }
 
 function convertNumberToMaskedNumber(numberVal: number | undefined): string {
@@ -1359,6 +1565,8 @@ export type ItemQuantidadeInputProps = {
     onChange?: (value: ItemQuantidade) => void;
     widthDropDownList?: DimensionValue;
     placeholderQtdInput?: string;
+    placeholderValorInput?: string;
+    incluiValor?: boolean;
 };
 
 export function ItemQuantidadeInput({
@@ -1368,6 +1576,8 @@ export function ItemQuantidadeInput({
     onChange,
     widthDropDownList,
     placeholderQtdInput,
+    placeholderValorInput,
+    incluiValor = false,
 }: ItemQuantidadeInputProps): React.JSX.Element {
     const itensInfo = useMemo(() => {
         const listaItens = itens.map(i => {
@@ -1402,10 +1612,26 @@ export function ItemQuantidadeInput({
             : '',
     );
 
-    function geraItemQuantidade(id: number, qtd: number): ItemQuantidade {
+    const [valorInp, setValorInp] = useState(
+        !incluiValor
+            ? undefined
+            : valorInicial?.valor !== 0
+            ? convertNumberToMaskedNumber(valorInicial?.valor)
+            : '',
+    );
+
+    function geraItemQuantidade(
+        id: number,
+        qtd: string,
+        valor: string | undefined,
+    ): ItemQuantidade {
         return {
             id: id,
-            qtd: qtd,
+            qtd: convertMaskedNumberToNumber(qtd),
+            valor:
+                valor !== undefined
+                    ? convertMaskedNumberToNumber(valor)
+                    : undefined,
         };
     }
 
@@ -1422,7 +1648,8 @@ export function ItemQuantidadeInput({
             onChange(
                 geraItemQuantidade(
                     itemSelecionado?.item.id ?? 0,
-                    convertMaskedNumberToNumber(qtdInp),
+                    qtdInp,
+                    valorInp,
                 ),
             );
         }
@@ -1433,12 +1660,27 @@ export function ItemQuantidadeInput({
             onChange(
                 geraItemQuantidade(
                     itemSelecionado?.item.id ?? 0,
-                    convertMaskedNumberToNumber(masked),
+                    masked,
+                    valorInp,
                 ),
             );
         }
 
         setQtdInp(masked);
+    }
+
+    function onInputValorChange(masked: string) {
+        if (onChange) {
+            onChange(
+                geraItemQuantidade(
+                    itemSelecionado?.item.id ?? 0,
+                    qtdInp,
+                    masked,
+                ),
+            );
+        }
+
+        setValorInp(masked.replace('R$', '').trim());
     }
 
     return (
@@ -1513,6 +1755,19 @@ export function ItemQuantidadeInput({
                     </Text>
                 )}
             </View>
+            {incluiValor && (
+                <MaskInput
+                    mask={Masks.BRL_CURRENCY}
+                    placeholder={placeholderValorInput}
+                    value={valorInp}
+                    onChangeText={onInputValorChange}
+                    keyboardType="numeric"
+                    style={[
+                        styleFormularioUtil.inputFormulario,
+                        styleUtil.contentText,
+                    ]}
+                />
+            )}
         </View>
     );
 }
@@ -1540,14 +1795,20 @@ export type MultipleItemQuantidadeProp = {
     title: string;
     listaItens: ItemEstoque[];
     valoresIniciais?: ItemQuantidade[] | null;
+    incluiValor?: boolean;
     onChange?: (novaLista: ItemQuantidade[]) => void;
+    placeholderQtdInput?: string;
+    placeholderValorInput?: string;
 };
 
 export function MultipleItemQuantidade({
     title,
     listaItens,
     valoresIniciais,
+    incluiValor = false,
     onChange,
+    placeholderQtdInput = 'Quantidade utilizada',
+    placeholderValorInput = 'Valor total',
 }: MultipleItemQuantidadeProp): React.JSX.Element {
     const [listaItensQuantidade, setListaItensQuantidade] = useState(
         _.cloneDeep(valoresIniciais ?? []),
@@ -1633,11 +1894,13 @@ export function MultipleItemQuantidade({
                             itens={listaItens}
                             tipo="item"
                             valorInicial={val?.id !== 0 ? val : undefined}
+                            incluiValor={incluiValor}
                             onChange={valor =>
                                 handleChangeItemQuantidadeInput(val.id, valor)
                             }
                             widthDropDownList={'95%'}
-                            placeholderQtdInput="Quantidade utilizada"
+                            placeholderQtdInput={placeholderQtdInput}
+                            placeholderValorInput={placeholderValorInput}
                         />
                     </View>
                 );
@@ -1752,7 +2015,7 @@ function FormularioReceitaLoaded({
         const itensSemQuantidade = listaIngredientes
             .filter(li => li.qtd <= 0)
             .map(li => li.id);
-        if (itensSemQuantidade.length) {
+        if (itensSemQuantidade.length > 0) {
             const descricoesItensSemQuantidade = listaMateriasPrimas
                 .filter(lmp => itensSemQuantidade.includes(lmp.item.id))
                 .map(lmp => lmp.item.descricao)
@@ -1918,20 +2181,229 @@ export function FormularioReceita({
     );
 }
 
-export function FormularioCompra({
-    id,
-}: FormularioEstoqueProp): React.JSX.Element {
-    const navigation = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+interface FormularioCompraLoadedProp extends FormularioEstoqueProp {
+    ordemCompraFormulario: OrdemCompraFormulario | null;
+    listaItens: ItemEstoque[];
+    gravaOrdemCompra: (
+        compraVisualizacao: OrdemCompraFormulario,
+    ) => Promise<void>;
+    cancelar: () => void;
+    confirmaGravar: () => void;
+    displayMensagem: (mensagem: string, tipo: eModalTipo) => void;
+}
 
-    function handleCancelar() {
-        navigation.goBack();
+function FormularioCompraLoaded({
+    ordemCompraFormulario,
+    listaItens,
+    gravaOrdemCompra,
+    cancelar,
+    confirmaGravar,
+    displayMensagem,
+    cancelado,
+}: FormularioCompraLoadedProp) {
+    let novoRegistro = (ordemCompraFormulario?.id ?? 0) === 0;
+
+    const [listaItensComprados, setListaItensComprados] = useState<
+        ItemQuantidade[]
+    >([]);
+
+    const [valorTotal, setValorTotal] = useState(
+        ordemCompraFormulario
+            ? ordemCompraFormulario.itensComprados.reduce(
+                  (prevVal, currVal) => prevVal + (currVal.valor ?? 0),
+                  0,
+              )
+            : 0,
+    );
+
+    const [aguardandoConfimacao, setAguardandoConfimacao] = useState(false);
+
+    function validaValores() {
+        if (
+            listaItensComprados.length === 0 ||
+            listaItensComprados.every(li => li.id === 0)
+        ) {
+            return 'Selecione pelo menos um item na compra';
+        }
+
+        const itensSemQuantidade = listaItensComprados
+            .filter(li => li.qtd <= 0)
+            .map(li => li.id);
+        if (itensSemQuantidade.length > 0) {
+            const descricoesItensSemQuantidade = listaItens
+                .filter(lmp => itensSemQuantidade.includes(lmp.item.id))
+                .map(lmp => lmp.item.descricao)
+                .join(',');
+
+            return `Informe a quantidade comprada do(s) item(ns): ${descricoesItensSemQuantidade}`;
+        }
+
+        const itensSemValor = listaItensComprados
+            .filter(li => (li.valor ?? 0) <= 0)
+            .map(li => li.id);
+        if (itensSemValor.length > 0) {
+            const descricoesItensSemValor = listaItens
+                .filter(lmp => itensSemValor.includes(lmp.item.id))
+                .map(lmp => lmp.item.descricao)
+                .join(',');
+
+            return `Informe o valor total gasto na compra do(s) item(ns): ${descricoesItensSemValor}`;
+        }
+
+        return '';
+    }
+
+    const trataGravar = useCallback(
+        (id: number, itensComprados: ItemQuantidade[], inclusao: string) => {
+            async function handleGravar() {
+                setAguardandoConfimacao(false);
+
+                try {
+                    await gravaOrdemCompra({
+                        id: id,
+                        itensComprados: itensComprados,
+                        inclusao: inclusao,
+                    });
+
+                    displayMensagem(
+                        'Foi gravado com sucesso',
+                        eModalTipo.Sucesso,
+                    );
+                } catch (e) {
+                    if (e instanceof Error) {
+                        displayMensagem(e.message, eModalTipo.Erro);
+                        console.log(e.stack);
+                    }
+                }
+            }
+
+            handleGravar();
+        },
+        [displayMensagem, gravaOrdemCompra],
+    );
+
+    if (aguardandoConfimacao && cancelado !== undefined && !cancelado) {
+        trataGravar(
+            ordemCompraFormulario?.id ?? 0,
+            listaItensComprados,
+            ordemCompraFormulario?.inclusao ?? new Date().toISOString(),
+        );
+    }
+
+    let descricaoFormulario = 'Adição Compra';
+
+    if (!novoRegistro) {
+        let inclusaoFormatar = new Date(ordemCompraFormulario?.inclusao ?? '');
+
+        descricaoFormulario = `Edição Compra - #${
+            ordemCompraFormulario?.id
+        } ${formataDataDisplay(inclusaoFormatar)}`;
+    }
+
+    function handleItensCompraChange(val: ItemQuantidade[]) {
+        const totalCalculado = val.reduce(
+            (prevVal, currVal) => prevVal + (currVal.valor ?? 0),
+            0,
+        );
+
+        if (totalCalculado !== valorTotal) {
+            setValorTotal(totalCalculado);
+        }
+
+        setListaItensComprados(val);
     }
 
     return (
+        <View
+            style={[
+                styleUtil.alignCenter,
+                styleFormularioUtil.containerFormulario,
+            ]}>
+            <Text
+                style={[
+                    styleFormularioUtil.titleFormulario,
+                    styleUtil.titleText,
+                ]}>
+                {descricaoFormulario}
+            </Text>
+            <Text
+                style={[styleUtil.contentText, styleFormularioUtil.totalValor]}>
+                Total: R$ {convertNumberToMaskedNumber(valorTotal)}
+            </Text>
+            <View
+                style={[
+                    styleUtil.alignCenter,
+                    styleFormularioUtil.inputContainerFormulario,
+                ]}>
+                <MultipleItemQuantidade
+                    title="Itens Compra"
+                    listaItens={listaItens}
+                    valoresIniciais={ordemCompraFormulario?.itensComprados}
+                    incluiValor
+                    onChange={handleItensCompraChange}
+                    placeholderQtdInput="Quantidade comprada"
+                />
+            </View>
+            <View
+                style={[
+                    styleUtil.alignCenter,
+                    styleFormularioUtil.buttonContainerFormulario,
+                ]}>
+                <ButtonWithStyle
+                    title={novoRegistro ? 'Adicionar' : 'Gravar'}
+                    onPress={() => {
+                        let mensagem = validaValores();
+                        if (mensagem.trim() !== '') {
+                            displayMensagem(mensagem, eModalTipo.Erro);
+                            return;
+                        }
+
+                        confirmaGravar();
+                        setAguardandoConfimacao(true);
+                    }}
+                    style={[styleUtil.button, styleUtil.actionButton]}
+                />
+                <ButtonWithStyle
+                    title="Cancelar"
+                    onPress={cancelar}
+                    style={[styleUtil.button, styleUtil.cancelaButton]}
+                />
+            </View>
+        </View>
+    );
+}
+
+export function FormularioCompra({
+    id,
+    cancelado,
+}: FormularioEstoqueProp): React.JSX.Element {
+    const casoUsoInit = useContext(CasoUso);
+
+    const [
+        cancelar,
+        confirmaGravar,
+        displayMensagem,
+        ordemCompraFormulario,
+        listaItens,
+        gravaOrdemCompra,
+        loading,
+    ] = useFormularioOrdemCompra(casoUsoInit, id);
+
+    return (
         <View>
-            <Text>{id ? 'Edição' : 'Adição'} Compra</Text>
-            <View />
-            <Button title="Cancelar" onPress={handleCancelar} />
+            {!loading ? (
+                <FormularioCompraLoaded
+                    ordemCompraFormulario={ordemCompraFormulario}
+                    listaItens={listaItens}
+                    gravaOrdemCompra={gravaOrdemCompra}
+                    cancelar={cancelar}
+                    confirmaGravar={confirmaGravar}
+                    displayMensagem={displayMensagem}
+                    cancelado={cancelado}
+                />
+            ) : (
+                <Text>loading</Text>
+            )}
         </View>
     );
 }
@@ -2196,27 +2668,69 @@ export function EstoqueModalOpcoesCompra({
     id,
     cancelado,
 }: EstoqueModalOpcoesProp): React.JSX.Element {
-    const {navigate} = useNavigation<EstoqueGerenciamentoProps['navigation']>();
+    const casoUsoInit = useContext(CasoUso);
+
+    const [deleta] = useDeletaOrdemCompra(casoUsoInit);
+    const natigation = useNavigation<EstoqueGerenciamentoProps['navigation']>();
 
     function editar() {
-        navigate('EstoqueGerenciamento', {
+        natigation.navigate('EstoqueGerenciamento', {
             componenteEstoqueTipo: eComponenteEstoqueTipo.Compras,
             id: id,
         });
     }
 
-    function excluir() {}
+    function confimaExclusao() {
+        natigation.navigate('EstoqueModalInfo', {
+            tipo: eModalTipo.Aviso,
+            mensagem: 'Deseja excluir o registro selecionado?',
+            redirecionaConfirma: 'EstoqueModalOpcoes',
+            redirecionaCancela: 'EstoqueVisualizacao',
+        });
+    }
+
+    const trataExclui = useCallback(
+        (idExclui: number) => {
+            async function handleExclui() {
+                try {
+                    await deleta(idExclui);
+                    natigation.navigate('EstoqueVisualizacao');
+                } catch (e) {
+                    if (e instanceof Error) {
+                        natigation.navigate('EstoqueModalInfo', {
+                            tipo: eModalTipo.Erro,
+                            mensagem: e.message,
+                            redirecionaConfirma: 'EstoqueVisualizacao',
+                        });
+                    }
+                }
+            }
+
+            handleExclui();
+        },
+        [deleta, natigation],
+    );
+
+    if (cancelado !== undefined) {
+        trataExclui(id);
+    }
 
     return (
         <View
-            style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#fff',
-            }}>
-            <Button title="Editar" onPress={editar} />
-            <Button title="Excluir" onPress={excluir} />
+            style={[
+                styleScreenUtil.alignCenter,
+                styleModalOpcoes.containerModalOption,
+            ]}>
+            <ButtonWithStyle
+                title="Editar"
+                onPress={editar}
+                style={[styleUtil.button, styleUtil.actionButton]}
+            />
+            <ButtonWithStyle
+                title="Excluir"
+                onPress={confimaExclusao}
+                style={[styleUtil.button, styleUtil.cancelaButton]}
+            />
         </View>
     );
 }

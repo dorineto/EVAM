@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {
     ItemEstoque,
     ItemMensurado,
+    ItemOrdem,
     ItemReceita,
     eItemTipo,
 } from '../../Entidades/Item';
@@ -18,52 +19,62 @@ import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
 import {useAppDispatch} from '../Slicers/Store';
 import {
     FormularioItemEstoque,
+    FormularioOrdemCompra,
     FormularioReceita,
     selectFormularioMateriaPrima,
+    selectFormularioOrdemCompra,
     selectFormularioProduto,
     selectFormularioReceita,
     setFormularioMateriaPrima,
+    setFormularioOrdemCompra,
     setFormularioProduto,
     setFormularioReceita,
 } from '../Slicers/EstoqueSlice';
 import {useSelector} from 'react-redux';
 import _ from 'lodash';
 import {Receita} from '../../Entidades/Receita';
+import {OrdemCompra} from '../../Entidades/OrdemCompra';
 
 export interface EstoqueRegistro {
     materiasPrimas: ItemEstoque[];
     produtos: ItemEstoque[];
     receitas: Receita[];
+    compras: OrdemCompra[];
 }
 
 export function useVisualizaEstoque({
     itemCasoUso,
     receitaCasoUso,
+    ordemCompraCasoUso,
 }: CasoUsoInit): [EstoqueRegistro] {
     const [estoqueRegistro, setEstoqueRegistro] = useState<EstoqueRegistro>({
         materiasPrimas: [],
         produtos: [],
         receitas: [],
+        compras: [],
     });
 
     useFocusEffect(
         useCallback(() => {
             async function buscaInfoEstoque() {
-                const [materiasPrimas, produtos, receitas] = await Promise.all([
-                    itemCasoUso.listaMateriasPrimas(),
-                    itemCasoUso.listaProdutos(),
-                    receitaCasoUso.listaReceitas(),
-                ]);
+                const [materiasPrimas, produtos, receitas, compras] =
+                    await Promise.all([
+                        itemCasoUso.listaMateriasPrimas(),
+                        itemCasoUso.listaProdutos(),
+                        receitaCasoUso.listaReceitas(),
+                        ordemCompraCasoUso.listaOrdemCompras(),
+                    ]);
 
                 setEstoqueRegistro({
                     materiasPrimas: materiasPrimas,
                     produtos: produtos,
                     receitas: receitas,
+                    compras: compras.sort((c1, c2) => c1.id - c2.id).reverse(),
                 });
             }
 
             buscaInfoEstoque();
-        }, [itemCasoUso, receitaCasoUso]),
+        }, [itemCasoUso, ordemCompraCasoUso, receitaCasoUso]),
     );
 
     return [estoqueRegistro];
@@ -152,35 +163,41 @@ export function useFormularioMateriaPrima(
 
     const dispatch = useAppDispatch();
 
-    const {itemEstoque, itemEstoqueFormulario} = useSelector(
+    const {itemEstoque, itemEstoqueFormulario,isLoading} = useSelector(
         selectFormularioMateriaPrima,
     );
-
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function buscaMateriaPrima() {
             if (novoRegistro) {
-                setLoading(false);
                 dispatch(
                     setFormularioMateriaPrima({
                         itemEstoque: null,
                         itemEstoqueFormulario: null,
+                        isLoading: false,
                     }),
                 );
                 return;
             }
+
+            dispatch(
+                setFormularioMateriaPrima({
+                    itemEstoque: null,
+                    itemEstoqueFormulario: null,
+                    isLoading: true,
+                }),
+            );
 
             const itemEstoqueBuscado = await itemCasoUso.buscaMateriaPrima(
                 id ?? 0,
             );
 
             if (!itemEstoqueBuscado) {
-                setLoading(false);
                 dispatch(
                     setFormularioMateriaPrima({
                         itemEstoque: null,
                         itemEstoqueFormulario: null,
+                        isLoading: false,
                     }),
                 );
                 return;
@@ -190,10 +207,10 @@ export function useFormularioMateriaPrima(
                 itemEstoque: itemEstoqueBuscado,
                 itemEstoqueFormulario:
                     traduzItemEstoqueFormulario(itemEstoqueBuscado),
+                isLoading: false,
             };
 
             dispatch(setFormularioMateriaPrima(itemDispatch));
-            setLoading(false);
         }
 
         buscaMateriaPrima();
@@ -241,6 +258,7 @@ export function useFormularioMateriaPrima(
             itemEstoque: itemEstoqueGrava,
             itemEstoqueFormulario:
                 traduzItemEstoqueFormulario(itemEstoqueGrava),
+            isLoading: false,
         };
 
         dispatch(setFormularioMateriaPrima(itemDispatch));
@@ -253,7 +271,7 @@ export function useFormularioMateriaPrima(
         listaMedidasInfo,
         itemEstoqueFormulario,
         gravaItemEstoque,
-        loading,
+        isLoading,
     ];
 }
 
@@ -282,33 +300,39 @@ export function useFormularioProduto(
 
     const dispatch = useAppDispatch();
 
-    const {itemEstoque, itemEstoqueFormulario} = useSelector(
+    const {itemEstoque, itemEstoqueFormulario, isLoading} = useSelector(
         selectFormularioProduto,
     );
-
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function buscaProduto() {
             if (novoRegistro) {
-                setLoading(false);
                 dispatch(
                     setFormularioProduto({
                         itemEstoque: null,
                         itemEstoqueFormulario: null,
+                        isLoading: false,
                     }),
                 );
                 return;
             }
 
+            dispatch(
+                setFormularioProduto({
+                    itemEstoque: null,
+                    itemEstoqueFormulario: null,
+                    isLoading: true,
+                }),
+            );
+
             const itemEstoqueBuscado = await itemCasoUso.buscaProduto(id ?? 0);
 
             if (!itemEstoqueBuscado) {
-                setLoading(false);
                 dispatch(
                     setFormularioProduto({
                         itemEstoque: null,
                         itemEstoqueFormulario: null,
+                        isLoading: false,
                     }),
                 );
                 return;
@@ -318,10 +342,10 @@ export function useFormularioProduto(
                 itemEstoque: itemEstoqueBuscado,
                 itemEstoqueFormulario:
                     traduzItemEstoqueFormulario(itemEstoqueBuscado),
+                isLoading: false,
             };
 
             dispatch(setFormularioProduto(itemDispatch));
-            setLoading(false);
         }
 
         buscaProduto();
@@ -369,6 +393,7 @@ export function useFormularioProduto(
             itemEstoque: itemEstoqueGrava,
             itemEstoqueFormulario:
                 traduzItemEstoqueFormulario(itemEstoqueGrava),
+            isLoading: false,
         };
 
         dispatch(setFormularioProduto(itemDispatch));
@@ -381,7 +406,7 @@ export function useFormularioProduto(
         listaMedidasInfo,
         itemEstoqueFormulario,
         gravaItemEstoque,
-        loading,
+        isLoading,
     ];
 }
 
@@ -396,6 +421,7 @@ export function useDeletaProduto({itemCasoUso}: CasoUsoInit): useDeletaEstoque {
 export type ItemQuantidade = {
     id: number;
     qtd: number;
+    valor?: number;
 };
 
 export type ReceitaSerializada = {
@@ -469,11 +495,9 @@ export function useFormularioReceita(
 
     const dispatch = useAppDispatch();
 
-    const {receitaSerializada, receitaFormulario} = useSelector(
+    const {receitaSerializada, receitaFormulario, isLoading} = useSelector(
         selectFormularioReceita,
     );
-
-    const [loading, setLoading] = useState(true);
 
     const [listaProdutos, setListaProduto] = useState<ItemEstoque[]>([]);
     const [listaMateriaPrima, setListaMateriaPrima] = useState<ItemEstoque[]>(
@@ -486,6 +510,7 @@ export function useFormularioReceita(
                 return {
                     receitaSerializada: null,
                     receitaFormulario: null,
+                    isLoading: false,
                 };
             }
 
@@ -495,16 +520,25 @@ export function useFormularioReceita(
                 return {
                     receitaSerializada: null,
                     receitaFormulario: null,
+                    isLoading: false,
                 };
             }
 
             return {
                 receitaSerializada: convertToReceitaSerializada(receita),
                 receitaFormulario: traduzReceitaFormulario(receita),
+                isLoading: false,
             };
         }
 
         async function buscaInfo() {
+            dispatch(
+                setFormularioReceita({
+                    receitaSerializada: null,
+                    receitaFormulario: null,
+                    isLoading: true,
+                }),
+            );
             const [
                 receitaDispatch,
                 listaMateriaPrimaBuscada,
@@ -518,8 +552,6 @@ export function useFormularioReceita(
             setListaMateriaPrima(listaMateriaPrimaBuscada);
             setListaProduto(listaProdutosBuscada);
             dispatch(setFormularioReceita(receitaDispatch));
-
-            setLoading(false);
         }
 
         buscaInfo();
@@ -635,6 +667,7 @@ export function useFormularioReceita(
         let receitaDispatch: FormularioReceita = {
             receitaSerializada: convertToReceitaSerializada(receitaGravar),
             receitaFormulario: traduzReceitaFormulario(receitaGravar),
+            isLoading: false,
         };
 
         dispatch(setFormularioReceita(receitaDispatch));
@@ -648,7 +681,7 @@ export function useFormularioReceita(
         listaMateriaPrima,
         listaProdutos,
         gravaReceita,
-        loading,
+        isLoading,
     ];
 }
 
@@ -657,6 +690,235 @@ export function useDeletaReceita({
 }: CasoUsoInit): useDeletaEstoque {
     async function deleta(id: number) {
         receitaCasoUso.deletaReceita(id);
+    }
+
+    return [deleta];
+}
+
+export type OrdemCompraSerializada = {
+    id: number;
+    itensComprados: ItemOrdem[];
+    inclusao: string;
+};
+
+function convertToOrdemCompraSerializada(
+    compra: OrdemCompra,
+): OrdemCompraSerializada {
+    return {
+        id: compra.id,
+        itensComprados: compra.itensComprados,
+        inclusao: compra.inclusao.toISOString(),
+    };
+}
+
+function convertToOrdemCompra(
+    compraSerializada: OrdemCompraSerializada,
+): OrdemCompra {
+    return new OrdemCompra(
+        compraSerializada.id,
+        compraSerializada.itensComprados,
+        new Date(compraSerializada.inclusao),
+    );
+}
+
+export type OrdemCompraFormulario = {
+    id: number;
+    itensComprados: ItemQuantidade[];
+    inclusao: string;
+};
+
+function traduzOrdemCompraFormulario(
+    compra: OrdemCompra,
+): OrdemCompraFormulario {
+    return {
+        id: compra.id,
+        itensComprados: compra.itensComprados.map(i => {
+            return {id: i.item.id, qtd: i.qtd, valor: i.valorTotal};
+        }),
+        inclusao: compra.inclusao.toISOString(),
+    };
+}
+
+export type useFormularioOrdemCompraRet = [
+    ...useFormularioEstoqueRet,
+    OrdemCompraFormulario | null,
+    ItemEstoque[],
+    (receitaVisualizacao: OrdemCompraFormulario) => Promise<void>,
+    boolean,
+];
+
+export function useFormularioOrdemCompra(
+    {itemCasoUso, ordemCompraCasoUso}: CasoUsoInit,
+    id?: number,
+): useFormularioOrdemCompraRet {
+    const novoRegistro = (id ?? 0) <= 0;
+
+    const [cancelar, confirmaGravar, displayMensagem] =
+        useFormularioEstoque(novoRegistro);
+
+    const dispatch = useAppDispatch();
+
+    const {ordemCompraSerializada, ordemCompraFormulario, isLoading} =
+        useSelector(selectFormularioOrdemCompra);
+
+    const [listaItens, setListaItens] = useState<ItemEstoque[]>([]);
+    useEffect(() => {
+        async function buscaProduto(): Promise<FormularioOrdemCompra> {
+            if (novoRegistro) {
+                return {
+                    ordemCompraSerializada: null,
+                    ordemCompraFormulario: null,
+                    isLoading: false,
+                };
+            }
+
+            const compra = await ordemCompraCasoUso.buscaOrdemCompra(id ?? 0);
+
+            if (!compra) {
+                return {
+                    ordemCompraSerializada: null,
+                    ordemCompraFormulario: null,
+                    isLoading: false,
+                };
+            }
+
+            return {
+                ordemCompraSerializada: convertToOrdemCompraSerializada(compra),
+                ordemCompraFormulario: traduzOrdemCompraFormulario(compra),
+                isLoading: false,
+            };
+        }
+
+        async function buscaInfo() {
+            dispatch(
+                setFormularioOrdemCompra({
+                    ordemCompraSerializada: null,
+                    ordemCompraFormulario: null,
+                    isLoading: true,
+                }),
+            );
+
+            const [
+                receitaDispatch,
+                listaMateriaPrimaBuscada,
+                listaProdutosBuscada,
+            ] = await Promise.all([
+                buscaProduto(),
+                itemCasoUso.listaMateriasPrimas(),
+                itemCasoUso.listaProdutos(),
+            ]);
+
+            setListaItens([
+                ...listaMateriaPrimaBuscada,
+                ...listaProdutosBuscada,
+            ]);
+            dispatch(setFormularioOrdemCompra(receitaDispatch));
+        }
+
+        buscaInfo();
+    }, [id, novoRegistro, dispatch, itemCasoUso, ordemCompraCasoUso]);
+
+    async function gravaOrdemCompra(compraVisualizacao: OrdemCompraFormulario) {
+        if (
+            compraVisualizacao.itensComprados.length === 0 ||
+            compraVisualizacao.itensComprados.every(lc => lc.id === 0)
+        ) {
+            throw new Error('Selecione pelo menos um item na compra');
+        }
+
+        if (
+            compraVisualizacao.itensComprados
+                .filter(lc => lc.id <= 0)
+                .some(lc => lc.qtd <= 0)
+        ) {
+            throw new Error('Informe a quantidade comprada do(s) item(ns)');
+        }
+
+        if (
+            compraVisualizacao.itensComprados
+                .filter(lc => lc.id <= 0)
+                .some(lc => (lc.valor ?? 0) <= 0)
+        ) {
+            throw new Error(
+                'Informe o valor total gasto na compra do(s) item(ns)',
+            );
+        }
+
+        const itensCompradoInfo = compraVisualizacao.itensComprados.reduce(
+            (valAnterior: {[id: number]: ItemQuantidade}, val) => {
+                valAnterior[val.id] = val;
+
+                return valAnterior;
+            },
+            {},
+        );
+
+        const itensEstoqueComprado = listaItens.filter(
+            li => itensCompradoInfo[li.item.id],
+        );
+
+        if (
+            compraVisualizacao.itensComprados.length !==
+            itensEstoqueComprado.length
+        ) {
+            throw new Error(
+                'Não foi possivel encontrar o(s) item(ns) comprados',
+            );
+        }
+
+        const itensComprados: ItemOrdem[] = itensEstoqueComprado.map(iic => {
+            let itemComprado = itensCompradoInfo[iic.item.id];
+
+            return {
+                item: iic.item,
+                medida: iic.medida,
+                qtd: itemComprado.qtd,
+                valorTotal: itemComprado.valor ?? 0,
+            };
+        });
+
+        let compraGravar: OrdemCompra;
+
+        if (!ordemCompraSerializada) {
+            compraGravar = new OrdemCompra(0, itensComprados, new Date());
+        } else {
+            compraGravar = convertToOrdemCompra(ordemCompraSerializada);
+
+            compraGravar.itensComprados = itensComprados;
+        }
+
+        const retorno = await ordemCompraCasoUso.gravaOrdemCompra(compraGravar);
+
+        if (!compraGravar.id) {
+            compraGravar.id = retorno;
+        }
+
+        let compraDispatch: FormularioOrdemCompra = {
+            ordemCompraSerializada:
+                convertToOrdemCompraSerializada(compraGravar),
+            ordemCompraFormulario: traduzOrdemCompraFormulario(compraGravar),
+            isLoading: false,
+        };
+
+        dispatch(setFormularioOrdemCompra(compraDispatch));
+    }
+
+    return [
+        cancelar,
+        confirmaGravar,
+        displayMensagem,
+        ordemCompraFormulario,
+        listaItens,
+        gravaOrdemCompra,
+        isLoading,
+    ];
+}
+
+export function useDeletaOrdemCompra({
+    ordemCompraCasoUso,
+}: CasoUsoInit): useDeletaEstoque {
+    async function deleta(id: number) {
+        ordemCompraCasoUso.deletaOrdemCompra(id);
     }
 
     return [deleta];

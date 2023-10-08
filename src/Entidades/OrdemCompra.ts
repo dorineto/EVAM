@@ -2,24 +2,34 @@ import {ItemOrdem} from './Item';
 import _ from 'lodash';
 
 export class OrdemCompra {
+    private _id: number;
     private _itensComprados: ItemOrdem[];
     private _inclusao: string;
 
-    constructor(itensComprados: ItemOrdem[], inclusao: Date) {
+    constructor(id: number, itensComprados: ItemOrdem[], inclusao: Date) {
+        this._id = id;
         this._itensComprados = itensComprados;
         this._inclusao = inclusao.toISOString();
     }
 
-    adicionaItems(...itemAdicionado: ItemOrdem[]) {
-        throw new Error('Não implementado');
+    get id(): number {
+        return this._id;
     }
 
-    removerItems(...itemRemovidos: ItemOrdem[]) {
-        throw new Error('Não implementado');
+    set id(idSet: number) {
+        if (this._id > 0) {
+            throw new Error('Id já setado');
+        }
+
+        this._id = idSet;
     }
 
     get itensComprados(): ItemOrdem[] {
         return _.cloneDeep(this._itensComprados);
+    }
+
+    set itensComprados(itensCompradosSet: ItemOrdem[]) {
+        this._itensComprados = _.cloneDeep(itensCompradosSet);
     }
 
     get totalCompra(): number {

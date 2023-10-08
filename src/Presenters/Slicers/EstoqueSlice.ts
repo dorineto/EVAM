@@ -3,6 +3,8 @@ import type {RootState} from './Store';
 import {ItemEstoque} from '../../Entidades/Item';
 import {
     ItemEstoqueFormulario,
+    OrdemCompraFormulario,
+    OrdemCompraSerializada,
     ReceitaFormulario,
     ReceitaSerializada,
 } from '../Controlles/EstoqueController';
@@ -10,11 +12,19 @@ import {
 export interface FormularioItemEstoque {
     itemEstoque: ItemEstoque | null;
     itemEstoqueFormulario: ItemEstoqueFormulario | null;
+    isLoading: boolean;
 }
 
 export interface FormularioReceita {
     receitaSerializada: ReceitaSerializada | null;
     receitaFormulario: ReceitaFormulario | null;
+    isLoading: boolean;
+}
+
+export interface FormularioOrdemCompra {
+    ordemCompraSerializada: OrdemCompraSerializada | null;
+    ordemCompraFormulario: OrdemCompraFormulario | null;
+    isLoading: boolean;
 }
 
 export const EstoqueSlice = createSlice({
@@ -23,14 +33,22 @@ export const EstoqueSlice = createSlice({
         formularioMateriaPrima: <FormularioItemEstoque>{
             itemEstoque: null,
             itemEstoqueFormulario: null,
+            isLoading: true,
         },
         formularioProduto: <FormularioItemEstoque>{
             itemEstoque: null,
             itemEstoqueFormulario: null,
+            isLoading: true,
         },
         formularioReceita: <FormularioReceita>{
             receitaSerializada: null,
             receitaFormulario: null,
+            isLoading: true,
+        },
+        formularioOrdemCompra: <FormularioOrdemCompra>{
+            ordemCompraSerializada: null,
+            ordemCompraFormulario: null,
+            isLoading: true,
         },
     },
     reducers: {
@@ -43,6 +61,9 @@ export const EstoqueSlice = createSlice({
         setFormularioReceita: (state, action) => {
             state.formularioReceita = action.payload;
         },
+        setFormularioOrdemCompra: (state, action) => {
+            state.formularioOrdemCompra = action.payload;
+        },
     },
 });
 
@@ -50,6 +71,7 @@ export const {
     setFormularioMateriaPrima,
     setFormularioProduto,
     setFormularioReceita,
+    setFormularioOrdemCompra,
 } = EstoqueSlice.actions;
 
 export const selectFormularioMateriaPrima = (state: RootState) =>
@@ -60,5 +82,8 @@ export const selectFormularioProduto = (state: RootState) =>
 
 export const selectFormularioReceita = (state: RootState) =>
     state.estoque.formularioReceita;
+
+export const selectFormularioOrdemCompra = (state: RootState) =>
+    state.estoque.formularioOrdemCompra;
 
 export default EstoqueSlice.reducer;

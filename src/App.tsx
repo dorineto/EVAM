@@ -50,6 +50,8 @@ import ItemRepositorioStub from './Data/ItemRepositorioStub';
 import {Store} from './Presenters/Slicers/Store';
 import {ReceitaCasoUso} from './CasosUsos/ReceitaCasoUso';
 import {ReceitaRepositorioStub} from './Data/ReceitaRepositorioStub';
+import {OrdemCompraCasoUso} from './CasosUsos/OrdemCompraCasoUso';
+import {OrdemCompraRepositorioStub} from './Data/OrdemCompraRepositorioStub';
 
 library.add(
     faChartPie,
@@ -128,6 +130,7 @@ function renderIconsBar({
 export type CasoUsoInit = {
     itemCasoUso: ItemCasoUso;
     receitaCasoUso: ReceitaCasoUso;
+    ordemCompraCasoUso: OrdemCompraCasoUso;
 };
 
 const itemRepositorio = new ItemRepositorioStub();
@@ -136,6 +139,10 @@ const casoUsoInit: CasoUsoInit = {
     itemCasoUso: new ItemCasoUso(itemRepositorio),
     receitaCasoUso: new ReceitaCasoUso(
         new ReceitaRepositorioStub(itemRepositorio),
+        itemRepositorio,
+    ),
+    ordemCompraCasoUso: new OrdemCompraCasoUso(
+        new OrdemCompraRepositorioStub(itemRepositorio),
         itemRepositorio,
     ),
 };

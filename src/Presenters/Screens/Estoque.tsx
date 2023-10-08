@@ -4,7 +4,6 @@ import {
     View,
     TouchableWithoutFeedback,
     StyleSheet,
-    Button,
     useWindowDimensions,
 } from 'react-native';
 import React from 'react';
@@ -22,6 +21,7 @@ import {
     FormularioProduto,
     FormularioReceita,
     MateriaPrimaRegistro,
+    OrdemCompraRegistro,
     ProdutoRegistro,
     ReceitaRegistro,
     eComponenteEstoqueTipo,
@@ -40,7 +40,7 @@ import {
 import {CommonActions} from '@react-navigation/native';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 
-// TODO: depois extrair esse hook em um arquivo de funções compartilhadas entre telas
+//TODO: depois extrair esse hook em um arquivo de funções compartilhadas entre telas
 function useScreenScrollViewHeight(): number {
     const bottomTabHeight = useBottomTabBarHeight();
     const windowDimension = useWindowDimensions();
@@ -63,16 +63,6 @@ function EstoqueVisualizacao() {
                     styleScreenUtil.alignCenter,
                     styleEstoqueVisualizacao.containerEstoqueVisualizacao,
                 ]}>
-                <EstoqueContainer title="Matérias-primas">
-                    {estoqueRegistro.materiasPrimas.map(materiaPrima => {
-                        return (
-                            <MateriaPrimaRegistro
-                                materiaPrima={materiaPrima}
-                                key={materiaPrima.item.id}
-                            />
-                        );
-                    })}
-                </EstoqueContainer>
                 <EstoqueContainer title="Produtos">
                     {estoqueRegistro.produtos.map(produto => {
                         return (
@@ -83,12 +73,32 @@ function EstoqueVisualizacao() {
                         );
                     })}
                 </EstoqueContainer>
+                <EstoqueContainer title="Matérias-primas">
+                    {estoqueRegistro.materiasPrimas.map(materiaPrima => {
+                        return (
+                            <MateriaPrimaRegistro
+                                materiaPrima={materiaPrima}
+                                key={materiaPrima.item.id}
+                            />
+                        );
+                    })}
+                </EstoqueContainer>
                 <EstoqueContainer title="Receitas">
                     {estoqueRegistro.receitas.map(receita => {
                         return (
                             <ReceitaRegistro
                                 receita={receita}
                                 key={receita.id ?? 0}
+                            />
+                        );
+                    })}
+                </EstoqueContainer>
+                <EstoqueContainer title="Compras">
+                    {estoqueRegistro.compras.map(compra => {
+                        return (
+                            <OrdemCompraRegistro
+                                compra={compra}
+                                key={compra.id ?? 0}
                             />
                         );
                     })}

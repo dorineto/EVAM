@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {Cliente} from '../Entidades/Cliente';
 import {Local} from '../Entidades/Local';
 import {OrdemVenda} from '../Entidades/OrdemVenda';
@@ -16,7 +17,6 @@ export class OrdemVendaCasoUso {
         this._itemRepositorio = itemRepositorio;
     }
 
-    //TODO: Fazer testes unitarios listaOrdemVendas, listaClientes e listaLocais
     async listaOrdemVendas(): Promise<OrdemVenda[]> {
         return await this._ordemVendaRepositorio.listaOrdemVendas();
     }
@@ -30,8 +30,13 @@ export class OrdemVendaCasoUso {
     }
 
     async buscaOrdemVenda(id: number): Promise<OrdemVenda | null> {
-        console.log(id);
-        return null;
+        if (id <= 0) {
+            return null;
+        }
+
+        return _.cloneDeep(
+            await this._ordemVendaRepositorio.buscaOrdemVenda(id),
+        );
     }
 
     async gravaOrdemVenda(venda: OrdemVenda): Promise<number> {

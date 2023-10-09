@@ -15,7 +15,7 @@ import {
     listMedidas,
 } from '../../Entidades/Medida';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
+import {EstoqueGerenciamentoProps} from '../Navigation/types';
 import {useAppDispatch} from '../Slicers/Store';
 import {
     FormularioItemEstoque,
@@ -34,6 +34,8 @@ import {useSelector} from 'react-redux';
 import _ from 'lodash';
 import {Receita} from '../../Entidades/Receita';
 import {OrdemCompra} from '../../Entidades/OrdemCompra';
+import {eModalTipo} from '../Componentes/Utils';
+import {ItemQuantidade} from './Util';
 
 export interface EstoqueRegistro {
     materiasPrimas: ItemEstoque[];
@@ -163,7 +165,7 @@ export function useFormularioMateriaPrima(
 
     const dispatch = useAppDispatch();
 
-    const {itemEstoque, itemEstoqueFormulario,isLoading} = useSelector(
+    const {itemEstoque, itemEstoqueFormulario, isLoading} = useSelector(
         selectFormularioMateriaPrima,
     );
 
@@ -417,12 +419,6 @@ export function useDeletaProduto({itemCasoUso}: CasoUsoInit): useDeletaEstoque {
 
     return [deleta];
 }
-
-export type ItemQuantidade = {
-    id: number;
-    qtd: number;
-    valor?: number;
-};
 
 export type ReceitaSerializada = {
     id: number;

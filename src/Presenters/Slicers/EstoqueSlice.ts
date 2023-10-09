@@ -8,6 +8,10 @@ import {
     ReceitaFormulario,
     ReceitaSerializada,
 } from '../Controlles/EstoqueController';
+import {
+    OrdemVendaFormulario,
+    OrdemVendaSerializada,
+} from '../Controlles/VendasController';
 
 export interface FormularioItemEstoque {
     itemEstoque: ItemEstoque | null;
@@ -24,6 +28,12 @@ export interface FormularioReceita {
 export interface FormularioOrdemCompra {
     ordemCompraSerializada: OrdemCompraSerializada | null;
     ordemCompraFormulario: OrdemCompraFormulario | null;
+    isLoading: boolean;
+}
+
+export interface FormularioOrdemVenda {
+    ordemVendaSerializada: OrdemVendaSerializada | null;
+    ordemVendaFormulario: OrdemVendaFormulario | null;
     isLoading: boolean;
 }
 
@@ -50,6 +60,11 @@ export const EstoqueSlice = createSlice({
             ordemCompraFormulario: null,
             isLoading: true,
         },
+        formularioOrdemVenda: <FormularioOrdemVenda>{
+            ordemVendaSerializada: null,
+            ordemVendaFormulario: null,
+            isLoading: true,
+        },
     },
     reducers: {
         setFormularioMateriaPrima: (state, action) => {
@@ -64,6 +79,9 @@ export const EstoqueSlice = createSlice({
         setFormularioOrdemCompra: (state, action) => {
             state.formularioOrdemCompra = action.payload;
         },
+        setFormularioOrdemVenda: (state, action) => {
+            state.formularioOrdemVenda = action.payload;
+        },
     },
 });
 
@@ -72,6 +90,7 @@ export const {
     setFormularioProduto,
     setFormularioReceita,
     setFormularioOrdemCompra,
+    setFormularioOrdemVenda,
 } = EstoqueSlice.actions;
 
 export const selectFormularioMateriaPrima = (state: RootState) =>
@@ -85,5 +104,8 @@ export const selectFormularioReceita = (state: RootState) =>
 
 export const selectFormularioOrdemCompra = (state: RootState) =>
     state.estoque.formularioOrdemCompra;
+
+export const selectFormularioOrdemVenda = (state: RootState) =>
+    state.estoque.formularioOrdemVenda;
 
 export default EstoqueSlice.reducer;

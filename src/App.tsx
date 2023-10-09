@@ -1,10 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
 import {createContext} from 'react';
 
@@ -22,10 +15,10 @@ import {
 
 import {Provider} from 'react-redux';
 
-import Dashboard from './Presenters/Screens/Dashboard';
+//import Dashboard from './Presenters/Screens/Dashboard';
 import Estoque from './Presenters/Screens/Estoque';
 import Vendas from './Presenters/Screens/Vendas';
-import Configuracoes from './Presenters/Screens/Configuracoes';
+//import Configuracoes from './Presenters/Screens/Configuracoes';
 
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {library, IconName} from '@fortawesome/fontawesome-svg-core';
@@ -52,6 +45,8 @@ import {ReceitaCasoUso} from './CasosUsos/ReceitaCasoUso';
 import {ReceitaRepositorioStub} from './Data/ReceitaRepositorioStub';
 import {OrdemCompraCasoUso} from './CasosUsos/OrdemCompraCasoUso';
 import {OrdemCompraRepositorioStub} from './Data/OrdemCompraRepositorioStub';
+import {OrdemVendaCasoUso} from './CasosUsos/OrdemVendaCasoUso';
+import {OrdemVendaRepositorioStub} from './Data/OrdemVendaRepostorioStub';
 
 library.add(
     faChartPie,
@@ -131,6 +126,7 @@ export type CasoUsoInit = {
     itemCasoUso: ItemCasoUso;
     receitaCasoUso: ReceitaCasoUso;
     ordemCompraCasoUso: OrdemCompraCasoUso;
+    ordemVendaCasoUso: OrdemVendaCasoUso;
 };
 
 const itemRepositorio = new ItemRepositorioStub();
@@ -143,6 +139,10 @@ const casoUsoInit: CasoUsoInit = {
     ),
     ordemCompraCasoUso: new OrdemCompraCasoUso(
         new OrdemCompraRepositorioStub(itemRepositorio),
+        itemRepositorio,
+    ),
+    ordemVendaCasoUso: new OrdemVendaCasoUso(
+        new OrdemVendaRepositorioStub(itemRepositorio),
         itemRepositorio,
     ),
 };
@@ -158,18 +158,18 @@ function App(): JSX.Element {
                     <NavigationContainer>
                         <Tab.Navigator
                             screenOptions={renderIconsBar}
-                            initialRouteName="Estoque"
+                            initialRouteName="Vendas"
                             backBehavior="history">
-                            <Tab.Screen
+                            {/* <Tab.Screen
                                 name="Dashboard"
                                 component={Dashboard}
-                            />
+                            /> */}
                             <Tab.Screen name="Estoque" component={Estoque} />
                             <Tab.Screen name="Vendas" component={Vendas} />
-                            <Tab.Screen
+                            {/* <Tab.Screen
                                 name="Configuracoes"
                                 component={Configuracoes}
-                            />
+                            /> */}
                         </Tab.Navigator>
                     </NavigationContainer>
                 </SafeAreaProvider>

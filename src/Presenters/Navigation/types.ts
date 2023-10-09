@@ -1,5 +1,13 @@
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {eComponenteEstoqueTipo} from '../Componentes/ComponentesEstoque';
+import {eModalTipo} from '../Componentes/Utils';
+
+type ModalInfo = {
+    tipo: eModalTipo;
+    mensagem: string;
+    redirecionaConfirma: EstoqueStackScreens;
+    redirecionaCancela?: EstoqueStackScreens;
+};
 
 export type EstoqueParamList = {
     EstoqueVisualizacao: undefined;
@@ -8,12 +16,7 @@ export type EstoqueParamList = {
         id?: number;
         cancelado?: boolean;
     };
-    EstoqueModalInfo: {
-        tipo: eModalTipo;
-        mensagem: string;
-        redirecionaConfirma: EstoqueStackScreens;
-        redirecionaCancela?: EstoqueStackScreens;
-    };
+    EstoqueModalInfo: ModalInfo;
     EstoqueModalOpcoes: {
         tipo: eComponenteEstoqueTipo;
         id: number;
@@ -21,22 +24,23 @@ export type EstoqueParamList = {
     };
 };
 
+export type VendaParamList = {
+    VendaVisualizacao: undefined;
+    VendaGerenciamento: {
+        id?: number;
+        cancelado?: boolean;
+    };
+    VendaModalInfo: ModalInfo;
+    VendaModalOpcoes: {
+        id: number;
+        cancelado?: boolean;
+    };
+};
+
 export type EstoqueStackScreens =
     | 'volta'
-    | Omit<'EstoqueModalInfo', keyof EstoqueParamList>;
-
-export enum eModalTipo {
-    Sucesso = 1,
-    Aviso = 2,
-    Info = 3,
-    Erro = 4,
-}
-
-// export type EstoqueVisualizacaoProps = NativeStackScreenProps<
-//     EstoqueParamList,
-//     'EstoqueVisualizacao',
-//     'EstoqueStack'
-// >;
+    | Omit<'EstoqueModalInfo', keyof EstoqueParamList>
+    | Omit<'VendaModalInfo', keyof VendaParamList>;
 
 export type EstoqueGerenciamentoProps = NativeStackScreenProps<
     EstoqueParamList,
@@ -54,4 +58,22 @@ export type EstoqueModalOpcoesProps = NativeStackScreenProps<
     EstoqueParamList,
     'EstoqueModalOpcoes',
     'EstoqueStack'
+>;
+
+export type VendaGerenciamentoProps = NativeStackScreenProps<
+    VendaParamList,
+    'VendaGerenciamento',
+    'VendaStack'
+>;
+
+export type VendaModalInfoProps = NativeStackScreenProps<
+    VendaParamList,
+    'VendaModalInfo',
+    'VendaStack'
+>;
+
+export type VendaModalOpcoesProps = NativeStackScreenProps<
+    VendaParamList,
+    'VendaModalOpcoes',
+    'VendaStack'
 >;

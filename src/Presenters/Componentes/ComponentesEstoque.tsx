@@ -1,4 +1,4 @@
-import React, {useContext, useState, useCallback, useMemo} from 'react';
+import React, {useContext, useState, useCallback} from 'react';
 import {PropsWithChildren} from 'react';
 import {
     View,
@@ -6,25 +6,31 @@ import {
     TouchableOpacity,
     TextInput,
     StyleSheet,
-    TouchableOpacityProps,
     ScrollView,
-    DimensionValue,
 } from 'react-native';
-import {
-    ItemEstoque,
-    ItemMensurado,
-    ItemOrdem,
-    ItemReceita,
-} from '../../Entidades/Item';
+import {ItemEstoque} from '../../Entidades/Item';
 import {useNavigation} from '@react-navigation/native';
-import {EstoqueGerenciamentoProps, eModalTipo} from '../Navigation/types';
+import {EstoqueGerenciamentoProps} from '../Navigation/types';
 import {Medida, MedidaInfo, eMedida, getMedida} from '../../Entidades/Medida';
 import {SelectList} from 'react-native-dropdown-select-list';
 import MaskInput, {Masks} from 'react-native-mask-input';
-import {QtdMask} from './Utils';
+import {
+    ButtonForm,
+    ButtonWithStyle,
+    ItemQuantidadeInput,
+    MultipleItemQuantidade,
+    QtdMask,
+    RegistroItemListaItem,
+    convertNumberToMaskedNumber,
+    eModalTipo,
+    formataDataDisplay,
+    styleFormularioUtil,
+    styleModalOpcoes,
+    styleScreenUtil,
+    styleUtil,
+} from './Utils';
 import {
     ItemEstoqueFormulario,
-    ItemQuantidade,
     OrdemCompraFormulario,
     ReceitaFormulario,
     useDeletaMateriaPrima,
@@ -38,82 +44,13 @@ import {
 } from '../Controlles/EstoqueController';
 import {CasoUso} from '../../App';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {IconProp} from '@fortawesome/fontawesome-svg-core';
-import {styleScreenUtil} from '../Screens/Estoque';
 import {Receita} from '../../Entidades/Receita';
-import _ from 'lodash';
 import {OrdemCompra} from '../../Entidades/OrdemCompra';
+import {ItemQuantidade} from '../Controlles/Util';
 
 export type EstoqueContainerProps = {
     title: string;
 };
-
-export const styleUtil = StyleSheet.create({
-    alignCenter: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 10,
-    },
-    titleText: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        lineHeight: 26.4,
-        letterSpacing: -0.7,
-        textAlign: 'center',
-        textAlignVertical: 'center',
-    },
-    subTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        lineHeight: 26,
-        letterSpacing: -0.7,
-        textAlign: 'center',
-        textAlignVertical: 'center',
-    },
-    nestedSubTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        lineHeight: 23.4,
-        letterSpacing: -0.7,
-        textAlign: 'center',
-        textAlignVertical: 'center',
-    },
-    contentText: {
-        fontSize: 16,
-        letterSpacing: -1,
-        lineHeight: 20.8,
-    },
-    button: {
-        width: '100%',
-        color: '#fff',
-        borderRadius: 50,
-        fontSize: 16,
-        letterSpacing: -1,
-        lineHeight: 20.8,
-        padding: 10,
-    },
-    buttonIcon: {
-        width: undefined,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    cancelaButton: {
-        backgroundColor: '#D84061',
-        borderColor: '#CE3657',
-        borderWidth: 2,
-    },
-    actionButton: {
-        backgroundColor: '#B180C5',
-        borderColor: '#AF84C0',
-        borderWidth: 2,
-    },
-    textAlignCenter: {
-        textAlign: 'center',
-        verticalAlign: 'middle',
-    },
-});
 
 export type ButtonExpandeProps = {
     onPress?: () => void;
@@ -343,94 +280,6 @@ export function ProdutoRegistro({
     );
 }
 
-export type RegistroItemListaItemProp = {
-    item: ItemReceita | ItemOrdem | ItemMensurado;
-    mostraValor?: boolean;
-};
-
-export function RegistroItemListaItem({
-    item,
-    mostraValor = false,
-}: RegistroItemListaItemProp): React.JSX.Element {
-    let valor: number | null = null;
-    if ('valorTotal' in item || 'valorMediaUnidade' in item) {
-        valor = 'valorTotal' in item ? item.valorTotal : item.valorMediaUnidade;
-    }
-
-    return (
-        <View
-            style={[styleRegistroItemListaItem.containerRegistroItemListaItem]}>
-            <View
-                style={[
-                    styleRegistroItemListaItem.contentRegistroItemListaItem,
-                    styleRegistroItemListaItem.iconRegistroItemListaItem,
-                ]}>
-                <FontAwesomeIcon
-                    size={
-                        styleRegistroItemListaItem.iconRegistroItemListaItem
-                            .fontSize
-                    }
-                    icon={['fas', 'circle']}
-                />
-            </View>
-            <Text
-                style={[
-                    styleUtil.contentText,
-                    styleRegistroItemListaItem.contentRegistroItemListaItem,
-                    mostraValor
-                        ? styleRegistroItemListaItem.descricaoRegistroItemListaItem
-                        : styleRegistroItemListaItem.expandidaDescricaoRegistroItemListaItem,
-                ]}>
-                {item.item.descricao}
-            </Text>
-            <Text
-                style={[
-                    styleUtil.contentText,
-                    styleRegistroItemListaItem.contentRegistroItemListaItem,
-                ]}>
-                {item.qtd} {item.medida.abreviacao}
-            </Text>
-            {valor && mostraValor && (
-                <Text
-                    style={[
-                        styleUtil.contentText,
-                        styleRegistroItemListaItem.contentRegistroItemListaItem,
-                    ]}>
-                    R$ {valor.toFixed(2).replace('.', ',')}
-                </Text>
-            )}
-        </View>
-    );
-}
-
-const styleRegistroItemListaItem = StyleSheet.create({
-    containerRegistroItemListaItem: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-around',
-        flexDirection: 'row',
-        gap: 10,
-        width: '100%',
-    },
-    iconRegistroItemListaItem: {
-        fontSize: 8,
-        paddingLeft: 5,
-        width: '3%',
-    },
-    contentRegistroItemListaItem: {
-        flexGrow: 1,
-        textAlign: 'left',
-        textAlignVertical: 'center',
-        width: '23%',
-    },
-    descricaoRegistroItemListaItem: {
-        width: '45%',
-    },
-    expandidaDescricaoRegistroItemListaItem: {
-        width: '65%',
-    },
-});
-
 export type ReceitaRegistroProp = {
     receita: Receita;
 };
@@ -443,7 +292,7 @@ export function ReceitaRegistro({
 
     function opcoes() {
         navigate('EstoqueModalOpcoes', {
-            tipo: eComponenteEstoqueTipo.Receita,
+            tipo: eComponenteEstoqueTipo.Receitas,
             id: receita.id,
         });
     }
@@ -544,18 +393,6 @@ const styleReceitaRegistro = StyleSheet.create({
         padding: 10,
     },
 });
-
-function formataDataDisplay(data: Date) {
-    if (!data) {
-        return '';
-    }
-
-    const formatedDay = (data.getDate() < 10 ? '0' : '') + data.getDate();
-    const formatedMonth =
-        (data.getMonth() + 1 < 10 ? '0' : '') + (data.getMonth() + 1);
-
-    return `${formatedDay}/${formatedMonth}/${data.getFullYear()}`;
-}
 
 export type OrdemCompraRegistroProp = {
     compra: OrdemCompra;
@@ -775,74 +612,6 @@ const styleItemRegistro = StyleSheet.create({
     },
 });
 
-type ButtonEstoqueFormProp = {
-    icon: IconProp;
-    title?: string;
-    onPress: () => void;
-};
-
-function ButtonEstoqueForm({
-    icon,
-    title,
-    onPress,
-}: ButtonEstoqueFormProp): React.JSX.Element {
-    return (
-        <TouchableOpacity onPress={onPress}>
-            <View style={[styleButtonEstoqueForm.containerButtonEstoqueForm]}>
-                {title && (
-                    <View
-                        style={[styleButtonEstoqueForm.titleButtonEstoqueForm]}>
-                        <Text
-                            style={[
-                                styleButtonEstoqueForm.titleButtonEstoqueForm,
-                                styleUtil.contentText,
-                            ]}>
-                            {title}
-                        </Text>
-                    </View>
-                )}
-                <View style={[styleButtonEstoqueForm.iconButtonEstoqueForm]}>
-                    <FontAwesomeIcon
-                        style={[styleButtonEstoqueForm.iconButtonEstoqueForm]}
-                        size={
-                            styleButtonEstoqueForm.iconButtonEstoqueForm
-                                .fontSize
-                        }
-                        icon={icon}
-                    />
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
-}
-
-const styleButtonEstoqueForm = StyleSheet.create({
-    containerButtonEstoqueForm: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        gap: 5,
-    },
-    titleButtonEstoqueForm: {
-        backgroundColor: '#A972BE',
-        borderColor: '#9F68B4',
-        color: '#fff',
-        padding: 5,
-        borderRadius: 50,
-    },
-    iconButtonEstoqueForm: {
-        fontSize: 25,
-        padding: 10,
-        color: '#fff',
-        backgroundColor: '#A972BE',
-        borderColor: '#9F68B4',
-        borderWidth: 2,
-        borderRadius: 50,
-        fontWeight: 'bold',
-    },
-});
-
 export function ButtonAdicionaEstoque(): React.JSX.Element {
     const [expandido, setExpandido] = useState(false);
 
@@ -859,17 +628,17 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
             ]}>
             {expandido && (
                 <View style={[styleUtil.alignCenter]}>
-                    <ButtonEstoqueForm
+                    <ButtonForm
                         icon={['fas', 'book']}
                         title="Receitas"
                         onPress={() =>
                             navigate('EstoqueGerenciamento', {
                                 componenteEstoqueTipo:
-                                    eComponenteEstoqueTipo.Receita,
+                                    eComponenteEstoqueTipo.Receitas,
                             })
                         }
                     />
-                    <ButtonEstoqueForm
+                    <ButtonForm
                         icon={['fas', 'tags']}
                         title="Produtos"
                         onPress={() =>
@@ -879,7 +648,7 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
                             })
                         }
                     />
-                    <ButtonEstoqueForm
+                    <ButtonForm
                         icon={['fas', 'box']}
                         title="Materias-primas"
                         onPress={() =>
@@ -889,7 +658,7 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
                             })
                         }
                     />
-                    <ButtonEstoqueForm
+                    <ButtonForm
                         icon={['fas', 'cart-shopping']}
                         title="Compras"
                         onPress={() =>
@@ -901,7 +670,7 @@ export function ButtonAdicionaEstoque(): React.JSX.Element {
                     />
                 </View>
             )}
-            <ButtonEstoqueForm
+            <ButtonForm
                 icon={expandido ? ['fas', 'minus'] : ['fas', 'plus']}
                 onPress={() => setExpandido(estadoAtual => !estadoAtual)}
             />
@@ -928,7 +697,7 @@ const styleButtonAdicionaEstoque = StyleSheet.create({
 export enum eComponenteEstoqueTipo {
     MateriaPrima = 'materia-prima',
     Produto = 'produto',
-    Receita = 'receita',
+    Receitas = 'receita',
     Compras = 'compras',
 }
 
@@ -1174,68 +943,6 @@ function FormularioMateriaPrimaLoaded({
         </View>
     );
 }
-
-const styleFormularioUtil = StyleSheet.create({
-    containerFormulario: {
-        backgroundColor: '#E2E2E2',
-        borderColor: '#D8D8D8',
-        borderWidth: 2,
-        borderRadius: 15,
-        padding: 10,
-        minWidth: '90%', // Não sei, mas só respeita quando é minwidth, talvés depois pesquisar melhor o que está acontecendo
-    },
-    titleFormulario: {
-        backgroundColor: '#8E49A9',
-        borderRadius: 50,
-        padding: 10,
-        color: '#fff',
-        width: '100%',
-        textAlign: 'center',
-        textAlignVertical: 'center',
-    },
-    inputContainerFormulario: {
-        width: '90%',
-    },
-    inputFormulario: {
-        backgroundColor: '#F5F5F5',
-        borderColor: '#E7E7E7',
-        borderWidth: 2,
-        padding: 15,
-        borderRadius: 15,
-        width: '100%',
-    },
-    containerDropdownList: {
-        width: '100%',
-        flexDirection: 'row',
-    },
-    containerDropdownListVertical: {
-        flexDirection: 'column',
-    },
-    inputDropdownList: {
-        backgroundColor: '#F5F5F5',
-        borderColor: '#E7E7E7',
-        borderWidth: 2,
-        padding: 15,
-        borderRadius: 15,
-        flexGrow: 0.3,
-    },
-    inputDropdownListVertical: {
-        flexGrow: undefined,
-    },
-    inputSideDropdownList: {
-        width: 'auto',
-        flexGrow: 0.7,
-    },
-    buttonContainerFormulario: {
-        width: '90%',
-    },
-    totalValor: {
-        backgroundColor: '#B180C5',
-        padding: 10,
-        color: '#fff',
-        borderRadius: 15,
-    },
-});
 
 export function FormularioMateriaPrima({
     id,
@@ -1544,417 +1251,6 @@ export function FormularioProduto({
         </View>
     );
 }
-
-function convertMaskedNumberToNumber(maskedNumber: string): number {
-    return Number(
-        maskedNumber
-            .replaceAll(/\.|R\$/g, '')
-            .replace(',', '.')
-            .trim(),
-    );
-}
-
-function convertNumberToMaskedNumber(numberVal: number | undefined): string {
-    return numberVal?.toFixed(2).replace('.', ',') ?? '';
-}
-
-export type ItemQuantidadeInputProps = {
-    itens: ItemEstoque[];
-    tipo: 'produto' | 'item';
-    valorInicial?: ItemQuantidade;
-    onChange?: (value: ItemQuantidade) => void;
-    widthDropDownList?: DimensionValue;
-    placeholderQtdInput?: string;
-    placeholderValorInput?: string;
-    incluiValor?: boolean;
-};
-
-export function ItemQuantidadeInput({
-    itens,
-    tipo,
-    valorInicial,
-    onChange,
-    widthDropDownList,
-    placeholderQtdInput,
-    placeholderValorInput,
-    incluiValor = false,
-}: ItemQuantidadeInputProps): React.JSX.Element {
-    const itensInfo = useMemo(() => {
-        const listaItens = itens.map(i => {
-            return {
-                key: i.item.id,
-                value: i.item.descricao,
-            };
-        });
-
-        const dictItens = itens.reduce(
-            (lastVal: {[id: number]: ItemEstoque}, currValue) => {
-                lastVal[currValue.item.id] = currValue;
-
-                return lastVal;
-            },
-            {},
-        );
-
-        return {
-            listaItens: listaItens,
-            dictItens: dictItens,
-        };
-    }, [itens]);
-
-    const [itemSelecionado, setItemSelecionado] = useState(
-        itensInfo.dictItens[valorInicial?.id ?? 0],
-    );
-
-    const [qtdInp, setQtdInp] = useState(
-        valorInicial?.qtd !== 0
-            ? convertNumberToMaskedNumber(valorInicial?.qtd)
-            : '',
-    );
-
-    const [valorInp, setValorInp] = useState(
-        !incluiValor
-            ? undefined
-            : valorInicial?.valor !== 0
-            ? convertNumberToMaskedNumber(valorInicial?.valor)
-            : '',
-    );
-
-    function geraItemQuantidade(
-        id: number,
-        qtd: string,
-        valor: string | undefined,
-    ): ItemQuantidade {
-        return {
-            id: id,
-            qtd: convertMaskedNumberToNumber(qtd),
-            valor:
-                valor !== undefined
-                    ? convertMaskedNumberToNumber(valor)
-                    : undefined,
-        };
-    }
-
-    function onDropDownlistItemChange(key: number) {
-        if (!key) {
-            return;
-        }
-
-        setItemSelecionado(itensInfo.dictItens[key]);
-    }
-
-    function onDropDownlistItemSelect() {
-        if (onChange) {
-            onChange(
-                geraItemQuantidade(
-                    itemSelecionado?.item.id ?? 0,
-                    qtdInp,
-                    valorInp,
-                ),
-            );
-        }
-    }
-
-    function onInputQtdChange(masked: string) {
-        if (onChange) {
-            onChange(
-                geraItemQuantidade(
-                    itemSelecionado?.item.id ?? 0,
-                    masked,
-                    valorInp,
-                ),
-            );
-        }
-
-        setQtdInp(masked);
-    }
-
-    function onInputValorChange(masked: string) {
-        if (onChange) {
-            onChange(
-                geraItemQuantidade(
-                    itemSelecionado?.item.id ?? 0,
-                    qtdInp,
-                    masked,
-                ),
-            );
-        }
-
-        setValorInp(masked.replace('R$', '').trim());
-    }
-
-    return (
-        <View
-            style={[
-                styleUtil.alignCenter,
-                styleFormularioUtil.containerDropdownList,
-                styleFormularioUtil.containerDropdownListVertical,
-            ]}>
-            <SelectList
-                setSelected={onDropDownlistItemChange}
-                onSelect={onDropDownlistItemSelect}
-                data={itensInfo.listaItens}
-                defaultOption={itensInfo.listaItens.find(
-                    i => i.key === valorInicial?.id,
-                )}
-                placeholder={tipo === 'produto' ? 'Produto' : 'Item'}
-                save="key"
-                search={true}
-                dropdownStyles={{
-                    ...styleItemQuantidadeInput.inputDropdownList,
-                    width: widthDropDownList,
-                }}
-                boxStyles={{
-                    ...styleItemQuantidadeInput.inputDropdownList,
-                    width: widthDropDownList,
-                }}
-                dropdownTextStyles={{
-                    ...styleUtil.contentText,
-                    width: widthDropDownList,
-                }}
-                inputStyles={{
-                    ...styleUtil.contentText,
-                    width: widthDropDownList,
-                }}
-                dropdownItemStyles={
-                    styleItemQuantidadeInput.inputDropdownListDropdownItem
-                }
-                notFoundText="Não encontrado"
-                searchPlaceholder="Pesquisar"
-            />
-            <View
-                style={[
-                    styleUtil.alignCenter,
-                    {flexDirection: 'row', width: '100%'},
-                ]}>
-                <MaskInput
-                    mask={QtdMask}
-                    placeholder={placeholderQtdInput}
-                    value={qtdInp}
-                    onChangeText={onInputQtdChange}
-                    keyboardType="numeric"
-                    style={[
-                        styleFormularioUtil.inputFormulario,
-                        styleUtil.contentText,
-                        {width: undefined, flexGrow: 0.6},
-                    ]}
-                />
-                {itemSelecionado?.medida.abreviacao && (
-                    <Text
-                        style={[
-                            styleUtil.contentText,
-                            styleUtil.button,
-                            styleUtil.actionButton,
-                            styleUtil.textAlignCenter,
-                            {
-                                width: undefined,
-                                flexGrow: 0.4,
-                            },
-                        ]}>
-                        {itemSelecionado?.medida.abreviacao}
-                    </Text>
-                )}
-            </View>
-            {incluiValor && (
-                <MaskInput
-                    mask={Masks.BRL_CURRENCY}
-                    placeholder={placeholderValorInput}
-                    value={valorInp}
-                    onChangeText={onInputValorChange}
-                    keyboardType="numeric"
-                    style={[
-                        styleFormularioUtil.inputFormulario,
-                        styleUtil.contentText,
-                    ]}
-                />
-            )}
-        </View>
-    );
-}
-
-const styleItemQuantidadeInput = StyleSheet.create({
-    inputDropdownList: {
-        backgroundColor: '#F5F5F5',
-        borderColor: '#E7E7E7',
-        borderWidth: 2,
-        padding: 10,
-        borderRadius: 15,
-    },
-    inputDropdownListDropdownItem: {
-        width: '100%',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    abreviacaoContainer: {
-        width: undefined,
-        flexGrow: 0.4,
-    },
-});
-
-export type MultipleItemQuantidadeProp = {
-    title: string;
-    listaItens: ItemEstoque[];
-    valoresIniciais?: ItemQuantidade[] | null;
-    incluiValor?: boolean;
-    onChange?: (novaLista: ItemQuantidade[]) => void;
-    placeholderQtdInput?: string;
-    placeholderValorInput?: string;
-};
-
-export function MultipleItemQuantidade({
-    title,
-    listaItens,
-    valoresIniciais,
-    incluiValor = false,
-    onChange,
-    placeholderQtdInput = 'Quantidade utilizada',
-    placeholderValorInput = 'Valor total',
-}: MultipleItemQuantidadeProp): React.JSX.Element {
-    const [listaItensQuantidade, setListaItensQuantidade] = useState(
-        _.cloneDeep(valoresIniciais ?? []),
-    );
-
-    function handleAdd() {
-        if (listaItensQuantidade.find(liq => liq.id === 0)) {
-            return;
-        }
-
-        setListaItensQuantidade(value => [...value, {id: 0, qtd: 0}]);
-    }
-
-    function handleChangeItemQuantidadeInput(
-        idItem: number,
-        value: ItemQuantidade,
-    ) {
-        const listaItensQuantidadeAlterado = listaItensQuantidade.map(liq => {
-            if (liq.id === idItem) {
-                return {...value};
-            }
-
-            return liq;
-        });
-
-        if (onChange) {
-            onChange(listaItensQuantidadeAlterado);
-        }
-
-        setListaItensQuantidade(listaItensQuantidadeAlterado);
-    }
-
-    function handleRemove(idItem: number) {
-        const listaItensQuantidadeAlterado = listaItensQuantidade.filter(
-            liq => liq.id !== idItem,
-        );
-
-        if (onChange) {
-            onChange(listaItensQuantidadeAlterado);
-        }
-
-        setListaItensQuantidade(listaItensQuantidadeAlterado);
-    }
-
-    return (
-        <View
-            style={[
-                styleUtil.alignCenter,
-                styleMultipleItemQuantidade.container,
-            ]}>
-            <Text
-                style={[
-                    styleUtil.subTitle,
-                    styleMultipleItemQuantidade.titleElement,
-                ]}>
-                {title}
-            </Text>
-            {listaItensQuantidade.map(val => {
-                return (
-                    <View
-                        key={val.id}
-                        style={[
-                            styleUtil.alignCenter,
-                            styleMultipleItemQuantidade.containerInputs,
-                        ]}>
-                        <ButtonWithStyle
-                            title={
-                                <FontAwesomeIcon
-                                    icon={['fas', 'xmark']}
-                                    size={styleUtil.button.fontSize}
-                                    color={styleUtil.button.color}
-                                />
-                            }
-                            onPress={() => handleRemove(val.id)}
-                            style={[
-                                styleUtil.button,
-                                styleUtil.buttonIcon,
-                                styleUtil.cancelaButton,
-                                styleMultipleItemQuantidade.removerBtn,
-                            ]}
-                        />
-                        <ItemQuantidadeInput
-                            itens={listaItens}
-                            tipo="item"
-                            valorInicial={val?.id !== 0 ? val : undefined}
-                            incluiValor={incluiValor}
-                            onChange={valor =>
-                                handleChangeItemQuantidadeInput(val.id, valor)
-                            }
-                            widthDropDownList={'95%'}
-                            placeholderQtdInput={placeholderQtdInput}
-                            placeholderValorInput={placeholderValorInput}
-                        />
-                    </View>
-                );
-            })}
-            <ButtonWithStyle
-                title={
-                    <FontAwesomeIcon
-                        icon={['fas', 'plus']}
-                        size={styleUtil.button.fontSize * 1.3}
-                        color={styleUtil.button.color}
-                    />
-                }
-                onPress={handleAdd}
-                style={[
-                    styleUtil.button,
-                    styleUtil.buttonIcon,
-                    styleUtil.actionButton,
-                ]}
-            />
-        </View>
-    );
-}
-
-const styleMultipleItemQuantidade = StyleSheet.create({
-    container: {
-        width: '100%',
-        backgroundColor: '#D8D8D8',
-        borderColor: '#CECECE',
-        borderWidth: 2,
-        borderRadius: 15,
-        paddingVertical: 10,
-        paddingHorizontal: 5,
-    },
-    containerInputs: {
-        width: '100%',
-        backgroundColor: '#C4C4C4',
-        borderColor: '#BABABA',
-        borderWidth: 2,
-        borderRadius: 15,
-        padding: 10,
-    },
-    removerBtn: {
-        alignSelf: 'flex-end',
-    },
-    titleElement: {
-        color: '#fff',
-        backgroundColor: '#A972BE',
-        borderColor: '#9F68B4',
-        borderWidth: 2,
-        borderRadius: 20,
-        width: '100%',
-        padding: 10,
-    },
-});
 
 interface FormularioReceitaLoadedProp extends FormularioEstoqueProp {
     receitaFormulario: ReceitaFormulario | null;
@@ -2484,44 +1780,6 @@ export function EstoqueModalOpcoesMateriaPrima({
     );
 }
 
-const styleModalOpcoes = StyleSheet.create({
-    containerModalOption: {
-        width: '100%',
-        backgroundColor: '#D5D5D5',
-        padding: 20,
-        gap: 10,
-        borderTopLeftRadius: 15,
-        borderTopRightRadius: 15,
-    },
-});
-
-export function ButtonWithStyle(
-    props: TouchableOpacityProps & {title: string | React.JSX.Element},
-): React.JSX.Element {
-    return (
-        <TouchableOpacity {...props}>
-            {typeof props.title === 'string' ? (
-                <Text
-                    style={[
-                        props.style,
-                        {
-                            textAlign: 'center',
-                            textAlignVertical: 'center',
-                            backgroundColor: undefined,
-                            borderColor: undefined,
-                            borderWidth: undefined,
-                            padding: undefined,
-                        },
-                    ]}>
-                    {props.title}
-                </Text>
-            ) : (
-                props.title
-            )}
-        </TouchableOpacity>
-    );
-}
-
 export function EstoqueModalOpcoesProduto({
     id,
     cancelado,
@@ -2604,7 +1862,7 @@ export function EstoqueModalOpcoesReceita({
 
     function editar() {
         natigation.navigate('EstoqueGerenciamento', {
-            componenteEstoqueTipo: eComponenteEstoqueTipo.Receita,
+            componenteEstoqueTipo: eComponenteEstoqueTipo.Receitas,
             id: id,
         });
     }

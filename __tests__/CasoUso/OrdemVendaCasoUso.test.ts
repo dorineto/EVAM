@@ -1,11 +1,15 @@
 import {OrdemVendaCasoUso} from '../../src/CasosUsos/OrdemVendaCasoUso';
 import {Cliente} from '../../src/Entidades/Cliente';
-import {ItemOrdem} from '../../src/Entidades/Item';
+import {ItemEstoque, ItemOrdem, eItemTipo} from '../../src/Entidades/Item';
 import {Local} from '../../src/Entidades/Local';
 import {OrdemVenda} from '../../src/Entidades/OrdemVenda';
 import {ItemRepositorio} from '../../src/Repositorios/ItemRepositorio';
 import {OrdemVendaRepositorio} from '../../src/Repositorios/OrdemVendaRepostorio';
-import {setupStubsItemRepositorio} from './ItemCasoUso.test';
+import {
+    ItemBuilder,
+    ItemEstoqueBuilder,
+    setupStubsItemRepositorio,
+} from './ItemCasoUso.test';
 import {ItemOrdemBuilder} from './OrdemCompraCasoUso.test';
 
 export function setupStubsOrdemVendaRepositorio(): [OrdemVendaRepositorio] {
@@ -16,6 +20,8 @@ export function setupStubsOrdemVendaRepositorio(): [OrdemVendaRepositorio] {
             listaLocais: jest.fn(async () => []),
             buscaOrdemVenda: jest.fn(async (_: number) => null),
             gravaOrdemVenda: jest.fn(async (_: OrdemVenda) => 0),
+            gravaCliente: jest.fn(async (_: Cliente) => 0),
+            gravaLocal: jest.fn(async (_: Local) => 0),
             deletaOrdemVenda: jest.fn(async (_: number) => {}),
         },
     ];
@@ -40,12 +46,12 @@ describe('Quando listaOrdemVendas', () => {
                 OrdemVendaBuilder.CriaVendaTeste(2),
             ];
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
-            let retorno = await ordemCompraCasoUsoTest.listaOrdemVendas();
+            let retorno = await ordemVendaCasoUsoTest.listaOrdemVendas();
 
             expect(retorno).not.toHaveLength(0);
             expect(retorno).toEqual([
@@ -63,14 +69,14 @@ describe('Quando listaOrdemVendas', () => {
 
             OrdemVendaRepositorioStub.listaOrdemVendas = async () => [];
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
-            expect(
-                await ordemCompraCasoUsoTest.listaOrdemVendas(),
-            ).toHaveLength(0);
+            expect(await ordemVendaCasoUsoTest.listaOrdemVendas()).toHaveLength(
+                0,
+            );
         },
     );
 
@@ -84,13 +90,13 @@ describe('Quando listaOrdemVendas', () => {
                 throw new Error('Error repositorio esperado');
             };
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
             await expect(
-                ordemCompraCasoUsoTest.listaOrdemVendas(),
+                ordemVendaCasoUsoTest.listaOrdemVendas(),
             ).rejects.toThrow();
         },
     );
@@ -108,12 +114,12 @@ describe('Quando listaClientes', () => {
                 ClienteBuilder.CriaClienteTeste(2),
             ];
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
-            let retorno = await ordemCompraCasoUsoTest.listaClientes();
+            let retorno = await ordemVendaCasoUsoTest.listaClientes();
 
             expect(retorno).not.toHaveLength(0);
             expect(retorno).toEqual([
@@ -131,14 +137,12 @@ describe('Quando listaClientes', () => {
 
             OrdemVendaRepositorioStub.listaClientes = async () => [];
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
-            expect(await ordemCompraCasoUsoTest.listaClientes()).toHaveLength(
-                0,
-            );
+            expect(await ordemVendaCasoUsoTest.listaClientes()).toHaveLength(0);
         },
     );
 
@@ -152,13 +156,13 @@ describe('Quando listaClientes', () => {
                 throw new Error('Error repositorio esperado');
             };
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
             await expect(
-                ordemCompraCasoUsoTest.listaClientes(),
+                ordemVendaCasoUsoTest.listaClientes(),
             ).rejects.toThrow();
         },
     );
@@ -176,12 +180,12 @@ describe('Quando listaLocais', () => {
                 LocalBuilder.CriaLocalTeste(2),
             ];
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
-            let retorno = await ordemCompraCasoUsoTest.listaLocais();
+            let retorno = await ordemVendaCasoUsoTest.listaLocais();
 
             expect(retorno).not.toHaveLength(0);
             expect(retorno).toEqual([
@@ -199,12 +203,12 @@ describe('Quando listaLocais', () => {
 
             OrdemVendaRepositorioStub.listaLocais = async () => [];
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
-            expect(await ordemCompraCasoUsoTest.listaLocais()).toHaveLength(0);
+            expect(await ordemVendaCasoUsoTest.listaLocais()).toHaveLength(0);
         },
     );
 
@@ -218,14 +222,12 @@ describe('Quando listaLocais', () => {
                 throw new Error('Error repositorio esperado');
             };
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
-            await expect(
-                ordemCompraCasoUsoTest.listaLocais(),
-            ).rejects.toThrow();
+            await expect(ordemVendaCasoUsoTest.listaLocais()).rejects.toThrow();
         },
     );
 });
@@ -239,12 +241,12 @@ describe('Quando buscaOrdemVenda', () => {
         OrdemVendaRepositorioStub.buscaOrdemVenda = async (_: number) =>
             receitaTeste;
 
-        let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+        let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
             OrdemVendaRepositorioStub,
             ItemRepositorioStub,
         );
 
-        let retorno = await ordemCompraCasoUsoTest.buscaOrdemVenda(1);
+        let retorno = await ordemVendaCasoUsoTest.buscaOrdemVenda(1);
 
         let retornoEsperado = OrdemVendaBuilder.CriaVendaTeste(1);
 
@@ -258,12 +260,12 @@ describe('Quando buscaOrdemVenda', () => {
 
         OrdemVendaRepositorioStub.buscaOrdemVenda = async (_: number) => null;
 
-        let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+        let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
             OrdemVendaRepositorioStub,
             ItemRepositorioStub,
         );
 
-        let retorno = await ordemCompraCasoUsoTest.buscaOrdemVenda(2);
+        let retorno = await ordemVendaCasoUsoTest.buscaOrdemVenda(2);
 
         expect(retorno).toBeNull();
     });
@@ -275,18 +277,18 @@ describe('Quando buscaOrdemVenda', () => {
             async (_: number) => null,
         );
 
-        let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+        let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
             OrdemVendaRepositorioStub,
             ItemRepositorioStub,
         );
 
         // teste ids 0
-        let retorno = await ordemCompraCasoUsoTest.buscaOrdemVenda(0);
+        let retorno = await ordemVendaCasoUsoTest.buscaOrdemVenda(0);
         expect(retorno).toBeNull();
         expect(OrdemVendaRepositorioStub.buscaOrdemVenda).toBeCalledTimes(0);
 
         // teste ids negativos
-        retorno = await ordemCompraCasoUsoTest.buscaOrdemVenda(-1);
+        retorno = await ordemVendaCasoUsoTest.buscaOrdemVenda(-1);
 
         expect(retorno).toBeNull();
         expect(OrdemVendaRepositorioStub.buscaOrdemVenda).toBeCalledTimes(0);
@@ -302,13 +304,650 @@ describe('Quando buscaOrdemVenda', () => {
                 throw new Error();
             };
 
-            let ordemCompraCasoUsoTest = new OrdemVendaCasoUso(
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
                 OrdemVendaRepositorioStub,
                 ItemRepositorioStub,
             );
 
             await expect(() =>
-                ordemCompraCasoUsoTest.buscaOrdemVenda(1),
+                ordemVendaCasoUsoTest.buscaOrdemVenda(1),
+            ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando gravaOrdemVenda', () => {
+    it.concurrent(
+        'Caso infomações validas deve gravar a venda e descontar a quantidade em estoque do item vendido',
+        async () => {
+            const [OrdemVendaRepositorioStub, ItemRepositorioStub] =
+                setupStubs();
+
+            OrdemVendaRepositorioStub.gravaOrdemVenda = jest.fn(
+                async (_: OrdemVenda) => {
+                    return 1;
+                },
+            );
+
+            OrdemVendaRepositorioStub.gravaCliente = jest.fn(
+                async (_: Cliente) => {
+                    return 1;
+                },
+            );
+
+            OrdemVendaRepositorioStub.gravaLocal = jest.fn(async (_: Local) => {
+                return 1;
+            });
+
+            ItemRepositorioStub.buscaMateriaPrima = jest.fn(
+                async (_: number): Promise<ItemEstoque | null> => {
+                    return ItemEstoqueBuilder.CriaItemTeste(
+                        1,
+                        new ItemBuilder().setTipo(eItemTipo.MateriaPrima),
+                        null,
+                        5,
+                    );
+                },
+            );
+
+            ItemRepositorioStub.buscaProduto = jest.fn(
+                async (_: number): Promise<ItemEstoque | null> => {
+                    return ItemEstoqueBuilder.CriaItemTeste(
+                        2,
+                        new ItemBuilder().setTipo(eItemTipo.Produto),
+                        null,
+                        7,
+                    );
+                },
+            );
+
+            ItemRepositorioStub.gravaMateriaPrima = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+            ItemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 2,
+            );
+
+            const itensVendidosTest = [
+                ItemOrdemBuilder.CriaItemTeste(
+                    1,
+                    new ItemOrdemBuilder().setQtd(1),
+                    new ItemBuilder().setTipo(eItemTipo.MateriaPrima),
+                ),
+                ItemOrdemBuilder.CriaItemTeste(
+                    2,
+                    new ItemOrdemBuilder().setQtd(4),
+                    new ItemBuilder().setTipo(eItemTipo.Produto),
+                ),
+            ];
+
+            const ordemVendaGravar = new OrdemVendaBuilder()
+                .setId(0)
+                .setItensVendidos(itensVendidosTest)
+                .build();
+
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
+                OrdemVendaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            const retorno = await ordemVendaCasoUsoTest.gravaOrdemVenda(
+                ordemVendaGravar,
+            );
+
+            expect(retorno).toEqual({vendaId: 1, clienteId: 1, localId: 1});
+            expect(OrdemVendaRepositorioStub.gravaOrdemVenda).toBeCalled();
+            expect(OrdemVendaRepositorioStub.gravaCliente).not.toBeCalled();
+            expect(OrdemVendaRepositorioStub.gravaLocal).not.toBeCalled();
+
+            expect(ItemRepositorioStub.buscaMateriaPrima).toBeCalled();
+            expect(ItemRepositorioStub.buscaProduto).toBeCalled();
+
+            expect(ItemRepositorioStub.gravaMateriaPrima).toBeCalled();
+            expect(
+                (<jest.Mock>ItemRepositorioStub.gravaMateriaPrima).mock
+                    .calls[0][0]?.qtd,
+            ).toEqual(4);
+
+            expect(ItemRepositorioStub.gravaProduto).toBeCalled();
+            expect(
+                (<jest.Mock>ItemRepositorioStub.gravaProduto).mock.calls[0][0]
+                    ?.qtd,
+            ).toEqual(3);
+        },
+    );
+
+    it.concurrent(
+        'Caso alterando a venda deve atualizar a venda alterar a quantidade em estoque proporcionamente a alteração',
+        async () => {
+            const [OrdemVendaRepositorioStub, ItemRepositorioStub] =
+                setupStubs();
+
+            const itensVendidosGravadaTest = [
+                ItemOrdemBuilder.CriaItemTeste(
+                    1,
+                    new ItemOrdemBuilder().setQtd(2),
+                    new ItemBuilder().setTipo(eItemTipo.MateriaPrima),
+                ),
+                ItemOrdemBuilder.CriaItemTeste(
+                    2,
+                    new ItemOrdemBuilder().setQtd(4),
+                    new ItemBuilder().setTipo(eItemTipo.Produto),
+                ),
+                ItemOrdemBuilder.CriaItemTeste(
+                    3,
+                    new ItemOrdemBuilder().setQtd(3),
+                    new ItemBuilder().setTipo(eItemTipo.Produto),
+                ),
+            ];
+
+            const ordemGravada = new OrdemVendaBuilder()
+                .setId(1)
+                .setItensVendidos(itensVendidosGravadaTest)
+                .build();
+
+            OrdemVendaRepositorioStub.buscaOrdemVenda = jest.fn(
+                async (_: number) => {
+                    return ordemGravada;
+                },
+            );
+
+            OrdemVendaRepositorioStub.gravaOrdemVenda = jest.fn(
+                async (_: OrdemVenda) => {
+                    return 1;
+                },
+            );
+
+            ItemRepositorioStub.buscaMateriaPrima = jest.fn(
+                async (_: number): Promise<ItemEstoque | null> => {
+                    return ItemEstoqueBuilder.CriaItemTeste(
+                        1,
+                        new ItemBuilder().setTipo(eItemTipo.MateriaPrima),
+                        null,
+                        1,
+                    );
+                },
+            );
+
+            ItemRepositorioStub.buscaProduto = jest.fn(
+                async (id: number): Promise<ItemEstoque | null> => {
+                    return ItemEstoqueBuilder.CriaItemTeste(
+                        id,
+                        new ItemBuilder().setTipo(eItemTipo.Produto),
+                        null,
+                        3,
+                    );
+                },
+            );
+
+            ItemRepositorioStub.gravaMateriaPrima = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+            ItemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 2,
+            );
+
+            const itensCompradosTest = [
+                ItemOrdemBuilder.CriaItemTeste(
+                    1,
+                    new ItemOrdemBuilder().setQtd(4),
+                    new ItemBuilder().setTipo(eItemTipo.MateriaPrima),
+                ),
+                ItemOrdemBuilder.CriaItemTeste(
+                    2,
+                    new ItemOrdemBuilder().setQtd(3),
+                    new ItemBuilder().setTipo(eItemTipo.Produto),
+                ),
+            ];
+
+            const ordemVendaGravar = new OrdemVendaBuilder()
+                .setId(1)
+                .setItensVendidos(itensCompradosTest)
+                .build();
+
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
+                OrdemVendaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            const retorno = await ordemVendaCasoUsoTest.gravaOrdemVenda(
+                ordemVendaGravar,
+            );
+
+            expect(retorno).toEqual({vendaId: 1, clienteId: 1, localId: 1});
+            expect(OrdemVendaRepositorioStub.buscaOrdemVenda).toBeCalled();
+            expect(OrdemVendaRepositorioStub.gravaOrdemVenda).toBeCalled();
+            expect(OrdemVendaRepositorioStub.gravaCliente).not.toBeCalled();
+            expect(OrdemVendaRepositorioStub.gravaLocal).not.toBeCalled();
+
+            expect(ItemRepositorioStub.buscaMateriaPrima).toBeCalled();
+            expect(ItemRepositorioStub.buscaProduto).toBeCalled();
+
+            expect(ItemRepositorioStub.gravaMateriaPrima).toBeCalled();
+
+            // Quando a quantidade alterada for maior que a quantidade gravada e tiver menos em estoque deve
+            // subtrair a quantidade da diferença do estoque e zerar a quantidade
+            expect(
+                (<jest.Mock>ItemRepositorioStub.gravaMateriaPrima).mock
+                    .calls[0][0]?.qtd,
+            ).toEqual(0);
+
+            expect(ItemRepositorioStub.gravaProduto).toBeCalledTimes(2);
+
+            // Quando a quantidade alterada for menor que a quantidade gravada deve
+            // incrementar a quantidade da diferença do estoque
+            let quantidadeGravada = (<jest.Mock>(
+                ItemRepositorioStub.gravaProduto
+            )).mock.calls.find((params: any) => params[0].item.id === 2)[0]
+                ?.qtd;
+            expect(quantidadeGravada).toEqual(4);
+
+            // Quando o item for removido da lista incrementa a quantidade gravada alteriormente no estoque
+            quantidadeGravada = (<jest.Mock>(
+                ItemRepositorioStub.gravaProduto
+            )).mock.calls.find((params: any) => params[0].item.id === 3)[0]
+                ?.qtd;
+            expect(quantidadeGravada).toEqual(6);
+        },
+    );
+
+    it.concurrent(
+        'Caso infomações validas e cliente e local são novos deve gravar a o local e cliente, e grava a venda',
+        async () => {
+            const [OrdemVendaRepositorioStub, ItemRepositorioStub] =
+                setupStubs();
+
+            OrdemVendaRepositorioStub.gravaOrdemVenda = jest.fn(
+                async (_: OrdemVenda) => {
+                    return 1;
+                },
+            );
+
+            OrdemVendaRepositorioStub.gravaCliente = jest.fn(
+                async (_: Cliente) => {
+                    return 1;
+                },
+            );
+
+            OrdemVendaRepositorioStub.gravaLocal = jest.fn(async (_: Local) => {
+                return 1;
+            });
+
+            ItemRepositorioStub.buscaProduto = jest.fn(
+                async (_: number): Promise<ItemEstoque | null> => {
+                    return ItemEstoqueBuilder.CriaItemTeste(
+                        2,
+                        new ItemBuilder().setTipo(eItemTipo.Produto),
+                        null,
+                        1,
+                    );
+                },
+            );
+
+            ItemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 2,
+            );
+
+            const itensVendidosTest = [
+                ItemOrdemBuilder.CriaItemTeste(
+                    2,
+                    new ItemOrdemBuilder().setQtd(1),
+                    new ItemBuilder().setTipo(eItemTipo.Produto),
+                ),
+            ];
+
+            const ordemVendaGravar = new OrdemVendaBuilder()
+                .setId(0)
+                .setItensVendidos(itensVendidosTest)
+                .setCliente(ClienteBuilder.CriaClienteTeste(0))
+                .setLocal(LocalBuilder.CriaLocalTeste(0))
+                .build();
+
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
+                OrdemVendaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            const retorno = await ordemVendaCasoUsoTest.gravaOrdemVenda(
+                ordemVendaGravar,
+            );
+
+            expect(retorno).toEqual({vendaId: 1, clienteId: 1, localId: 1});
+            expect(OrdemVendaRepositorioStub.gravaOrdemVenda).toBeCalled();
+            expect(OrdemVendaRepositorioStub.gravaCliente).toBeCalled();
+            expect(OrdemVendaRepositorioStub.gravaLocal).toBeCalled();
+
+            expect(ItemRepositorioStub.buscaProduto).toBeCalled();
+
+            expect(ItemRepositorioStub.gravaProduto).toBeCalled();
+            expect(
+                (<jest.Mock>ItemRepositorioStub.gravaProduto).mock.calls[0][0]
+                    ?.qtd,
+            ).toEqual(0);
+        },
+    );
+
+    it.concurrent(
+        'Caso passado valores invalidos então lança exceção',
+        async () => {
+            const [OrdemVendaRepositorioStub, ItemRepositorioStub] =
+                setupStubs();
+
+            OrdemVendaRepositorioStub.buscaOrdemVenda = jest.fn(
+                async (_: number) => null,
+            );
+
+            OrdemVendaRepositorioStub.gravaOrdemVenda = jest.fn(
+                async (_: OrdemVenda) => 1,
+            );
+
+            ItemRepositorioStub.buscaMateriaPrima = jest.fn(
+                async (_: number): Promise<ItemEstoque | null> => null,
+            );
+
+            ItemRepositorioStub.buscaProduto = jest.fn(
+                async (_: number): Promise<ItemEstoque | null> => null,
+            );
+
+            ItemRepositorioStub.gravaMateriaPrima = jest.fn(
+                async (_: ItemEstoque) => 1,
+            );
+            ItemRepositorioStub.gravaProduto = jest.fn(
+                async (_: ItemEstoque) => 2,
+            );
+
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
+                OrdemVendaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            async function assertLancaExcessaoValorInvalido(
+                compraGrava: OrdemVenda,
+            ) {
+                await expect(() =>
+                    ordemVendaCasoUsoTest.gravaOrdemVenda(compraGrava),
+                ).rejects.toThrow();
+
+                expect(
+                    OrdemVendaRepositorioStub.gravaOrdemVenda,
+                ).not.toBeCalled();
+                expect(OrdemVendaRepositorioStub.gravaCliente).not.toBeCalled();
+                expect(OrdemVendaRepositorioStub.gravaLocal).not.toBeCalled();
+                expect(
+                    OrdemVendaRepositorioStub.buscaOrdemVenda,
+                ).not.toBeCalled();
+                expect(ItemRepositorioStub.buscaMateriaPrima).not.toBeCalled();
+                expect(ItemRepositorioStub.buscaProduto).not.toBeCalled();
+                expect(ItemRepositorioStub.gravaMateriaPrima).not.toBeCalled();
+                expect(ItemRepositorioStub.gravaProduto).not.toBeCalled();
+            }
+
+            const ordemCompraBuilder = new OrdemVendaBuilder()
+                .setId(1)
+                .setItensVendidos([
+                    ItemOrdemBuilder.CriaItemTeste(
+                        1,
+                        new ItemOrdemBuilder().setQtd(4),
+                        new ItemBuilder().setTipo(eItemTipo.MateriaPrima),
+                    ),
+                    ItemOrdemBuilder.CriaItemTeste(
+                        2,
+                        new ItemOrdemBuilder().setQtd(3),
+                        new ItemBuilder().setTipo(eItemTipo.Produto),
+                    ),
+                ]);
+
+            // Lista itens vazia
+            let ordemCompraGrava = ordemCompraBuilder.build();
+
+            ordemCompraGrava.itensVendidos = [];
+            await assertLancaExcessaoValorInvalido(ordemCompraGrava);
+
+            // Lista itens qtds invalidas
+            ordemCompraGrava = ordemCompraBuilder.build();
+
+            ordemCompraGrava.itensVendidos = ItemOrdemBuilder.CriaListaTestes(
+                1,
+                1,
+                new ItemOrdemBuilder().setQtd(0),
+            );
+
+            await assertLancaExcessaoValorInvalido(ordemCompraGrava);
+
+            // Lista itens ids invalidos
+            ordemCompraGrava = ordemCompraBuilder.build();
+
+            ordemCompraGrava.itensVendidos = ItemOrdemBuilder.CriaListaTestes(
+                0,
+                1,
+            );
+
+            await assertLancaExcessaoValorInvalido(ordemCompraGrava);
+
+            // Lista itens valores invalidos
+            ordemCompraGrava = ordemCompraBuilder.build();
+
+            ordemCompraGrava.itensVendidos = ItemOrdemBuilder.CriaListaTestes(
+                1,
+                1,
+                new ItemOrdemBuilder().setValorTotal(0),
+            );
+
+            await assertLancaExcessaoValorInvalido(ordemCompraGrava);
+
+            // Cliente a ser cadastrado com nome vazio
+            ordemCompraGrava = ordemCompraBuilder.build();
+
+            ordemCompraGrava.cliente = new ClienteBuilder()
+                .setId(0)
+                .setNome('')
+                .build();
+
+            await assertLancaExcessaoValorInvalido(ordemCompraGrava);
+
+            // Local a ser cadastrado com descrição vazia
+            ordemCompraGrava = ordemCompraBuilder.build();
+
+            ordemCompraGrava.local = new LocalBuilder()
+                .setId(0)
+                .setDescricao('')
+                .build();
+
+            await assertLancaExcessaoValorInvalido(ordemCompraGrava);
+        },
+    );
+
+    it.concurrent(
+        'Caso os repositórios lance uma exceção então deixa lançar',
+        async () => {
+            const [OrdemVendaRepositorioStub, ItemRepositorioStub] =
+                setupStubs();
+
+            function defaultCalls() {
+                OrdemVendaRepositorioStub.gravaOrdemVenda = async (
+                    _: OrdemVenda,
+                ) => {
+                    return 1;
+                };
+
+                OrdemVendaRepositorioStub.gravaCliente = async (_: Cliente) => {
+                    return 1;
+                };
+
+                OrdemVendaRepositorioStub.gravaLocal = async (_: Local) => {
+                    return 1;
+                };
+
+                ItemRepositorioStub.buscaMateriaPrima = async (
+                    _: number,
+                ): Promise<ItemEstoque | null> => {
+                    return ItemEstoqueBuilder.CriaItemTeste(
+                        1,
+                        new ItemBuilder().setTipo(eItemTipo.MateriaPrima),
+                    );
+                };
+
+                ItemRepositorioStub.buscaProduto = async (
+                    _: number,
+                ): Promise<ItemEstoque | null> => {
+                    return ItemEstoqueBuilder.CriaItemTeste(
+                        2,
+                        new ItemBuilder().setTipo(eItemTipo.Produto),
+                    );
+                };
+
+                ItemRepositorioStub.gravaMateriaPrima = async (
+                    _: ItemEstoque,
+                ) => 1;
+                ItemRepositorioStub.gravaProduto = async (_: ItemEstoque) => 2;
+            }
+
+            // Quando repositorio ordem venda lança exceção
+            defaultCalls();
+
+            OrdemVendaRepositorioStub.gravaOrdemVenda = async (
+                _: OrdemVenda,
+            ) => {
+                throw new Error();
+            };
+
+            const ordemCompraTeste = new OrdemVendaBuilder()
+                .setId(1)
+                .setItensVendidos([
+                    ItemOrdemBuilder.CriaItemTeste(
+                        1,
+                        new ItemOrdemBuilder().setQtd(4),
+                        new ItemBuilder().setTipo(eItemTipo.MateriaPrima),
+                    ),
+                    ItemOrdemBuilder.CriaItemTeste(
+                        2,
+                        new ItemOrdemBuilder().setQtd(3),
+                        new ItemBuilder().setTipo(eItemTipo.Produto),
+                    ),
+                ])
+                .setCliente(ClienteBuilder.CriaClienteTeste(0))
+                .setLocal(LocalBuilder.CriaLocalTeste(0))
+                .build();
+
+            const ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
+                OrdemVendaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            await expect(() =>
+                ordemVendaCasoUsoTest.gravaOrdemVenda(ordemCompraTeste),
+            ).rejects.toThrow();
+
+            defaultCalls();
+
+            OrdemVendaRepositorioStub.gravaCliente = async (_: Cliente) => {
+                throw new Error();
+            };
+
+            await expect(() =>
+                ordemVendaCasoUsoTest.gravaOrdemVenda(ordemCompraTeste),
+            ).rejects.toThrow();
+
+            defaultCalls();
+
+            OrdemVendaRepositorioStub.gravaLocal = async (_: Local) => {
+                throw new Error();
+            };
+
+            await expect(() =>
+                ordemVendaCasoUsoTest.gravaOrdemVenda(ordemCompraTeste),
+            ).rejects.toThrow();
+
+            // Quando repositorio item lança exceção
+            defaultCalls();
+
+            ItemRepositorioStub.gravaMateriaPrima = async (_: ItemEstoque) => {
+                throw new Error();
+            };
+
+            await expect(() =>
+                ordemVendaCasoUsoTest.gravaOrdemVenda(ordemCompraTeste),
+            ).rejects.toThrow();
+
+            defaultCalls();
+
+            ItemRepositorioStub.gravaProduto = async (_: ItemEstoque) => {
+                throw new Error();
+            };
+
+            await expect(() =>
+                ordemVendaCasoUsoTest.gravaOrdemVenda(ordemCompraTeste),
+            ).rejects.toThrow();
+        },
+    );
+});
+
+describe('Quando deletaOrdemVenda', () => {
+    it.concurrent(
+        'Caso passado valores validos então deleta registro',
+        async () => {
+            const [OrdemVendaRepositorioStub, ItemRepositorioStub] =
+                setupStubs();
+
+            OrdemVendaRepositorioStub.deletaOrdemVenda = jest.fn(
+                async function (_: number) {},
+            );
+
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
+                OrdemVendaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            await ordemVendaCasoUsoTest.deletaOrdemVenda(1);
+
+            expect(OrdemVendaRepositorioStub.deletaOrdemVenda).toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso passe valores invalidos deve retornar sem chamar o repositorio',
+        async () => {
+            const [OrdemVendaRepositorioStub, ItemRepositorioStub] =
+                setupStubs();
+
+            OrdemVendaRepositorioStub.deletaOrdemVenda = jest.fn(
+                async function (_: number) {},
+            );
+
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
+                OrdemVendaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            // Id seja 0
+            ordemVendaCasoUsoTest.deletaOrdemVenda(0);
+            expect(OrdemVendaRepositorioStub.deletaOrdemVenda).not.toBeCalled();
+
+            // Id seja negativo
+            ordemVendaCasoUsoTest.deletaOrdemVenda(-1);
+            expect(OrdemVendaRepositorioStub.deletaOrdemVenda).not.toBeCalled();
+        },
+    );
+
+    it.concurrent(
+        'Caso o repositório lance uma exceção então deixa lançar',
+        async () => {
+            const [OrdemVendaRepositorioStub, ItemRepositorioStub] =
+                setupStubs();
+
+            OrdemVendaRepositorioStub.deletaOrdemVenda = jest.fn(
+                async function (_: number) {
+                    throw new Error();
+                },
+            );
+
+            let ordemVendaCasoUsoTest = new OrdemVendaCasoUso(
+                OrdemVendaRepositorioStub,
+                ItemRepositorioStub,
+            );
+
+            await expect(() =>
+                ordemVendaCasoUsoTest.deletaOrdemVenda(1),
             ).rejects.toThrow();
         },
     );

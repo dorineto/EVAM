@@ -49,16 +49,16 @@ export class OrdemVenda {
         return _.cloneDeep(this._cliente);
     }
 
-    set cliente(cliente: Cliente) {
-        this._cliente = cliente;
+    set cliente(clienteInp: Cliente) {
+        this._cliente = clienteInp;
     }
 
     get local(): Local {
         return _.cloneDeep(this._local);
     }
 
-    set local(local: Local) {
-        this.local = local;
+    set local(localInp: Local) {
+        this._local = localInp;
     }
 
     get totalVenda(): number {

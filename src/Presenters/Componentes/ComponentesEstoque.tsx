@@ -961,7 +961,7 @@ export function FormularioMateriaPrima({
     ] = useFormularioMateriaPrima(casoUsoInit, id);
 
     return (
-        <View>
+        <View style={[styleFormularioUtil.viewContainer]}>
             {!loading ? (
                 <FormularioMateriaPrimaLoaded
                     itemEstoque={itemEstoque}
@@ -1234,7 +1234,7 @@ export function FormularioProduto({
     ] = useFormularioProduto(casoUsoInit, id);
 
     return (
-        <View>
+        <View style={[styleFormularioUtil.viewContainer]}>
             {!loading ? (
                 <FormularioProdutoLoaded
                     itemEstoque={itemEstoque}
@@ -1458,7 +1458,7 @@ export function FormularioReceita({
     ] = useFormularioReceita(casoUsoInit, id);
 
     return (
-        <View>
+        <View style={[styleFormularioUtil.viewContainer]}>
             {!loading ? (
                 <FormularioReceitaLoaded
                     receitaFormulario={receitaFormulario}
@@ -1686,7 +1686,7 @@ export function FormularioCompra({
     ] = useFormularioOrdemCompra(casoUsoInit, id);
 
     return (
-        <View>
+        <View style={[styleFormularioUtil.viewContainer]}>
             {!loading ? (
                 <FormularioCompraLoaded
                     ordemCompraFormulario={ordemCompraFormulario}

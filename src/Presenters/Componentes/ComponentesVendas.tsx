@@ -2,10 +2,7 @@ import React, {useState, useMemo, useCallback, useContext} from 'react';
 import {OrdemVenda} from '../../Entidades/OrdemVenda';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {
-    EstoqueGerenciamentoProps,
-    VendaGerenciamentoProps,
-} from '../Navigation/types';
+import {VendaGerenciamentoProps} from '../Navigation/types';
 import {
     ButtonForm,
     ButtonWithStyle,
@@ -21,22 +18,17 @@ import {
     styleScreenUtil,
     styleUtil,
 } from './Utils';
-import {
-    ButtonExpande,
-    EstoqueModalOpcoesProp,
-    eComponenteEstoqueTipo,
-} from './ComponentesEstoque';
+import {ButtonExpande} from './ComponentesEstoque';
 import {CasoUso} from '../../App';
-import {useDeletaOrdemCompra} from '../Controlles/EstoqueController';
 import {ItemQuantidade} from '../Controlles/Util';
 import {
     OrdemVendaFormulario,
+    useDeletaOrdemVenda,
     useFormularioOrdemVenda,
 } from '../Controlles/VendasController';
 import {ItemEstoque} from '../../Entidades/Item';
 import {Cliente} from '../../Entidades/Cliente';
 import {Local} from '../../Entidades/Local';
-import {listaClientes, listaLocais} from '../../Data/InitialDataStub';
 
 export type VendasRegistroContainerProps = {
     vendas: OrdemVenda[];
@@ -326,6 +318,8 @@ interface FormularioVendaLoadedProp extends FormularioVendaProp {
 function FormularioVendaLoaded({
     ordemVendaFormulario,
     listaItens,
+    listaClientes,
+    listaLocais,
     gravaOrdemVenda,
     cancelar,
     confirmaGravar,
@@ -609,7 +603,7 @@ export function FormularioVenda({
     ] = useFormularioOrdemVenda(casoUsoInit, id);
 
     return (
-        <View>
+        <View style={[styleFormularioUtil.viewContainer]}>
             {!isLoading ? (
                 <FormularioVendaLoaded
                     ordemVendaFormulario={ordemVendaFormulario}
@@ -640,12 +634,7 @@ export function VendaModalOpcoesVenda({
 }: VendasModalOpcoesProp): React.JSX.Element {
     const casoUsoInit = useContext(CasoUso);
 
-    //const [deleta] = useDeletaOrdemCompra(casoUsoInit);
-    const [deleta] = [
-        async (ida: number) => {
-            console.log(`Excluindo venda - ID:${ida}`);
-        },
-    ];
+    const [deleta] = useDeletaOrdemVenda(casoUsoInit);
     const natigation = useNavigation<VendaGerenciamentoProps['navigation']>();
 
     function editar() {

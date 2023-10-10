@@ -201,9 +201,8 @@ export function ButtonWithStyle(
                 <Text
                     style={[
                         props.style,
+                        styleUtil.textAlignCenter,
                         {
-                            textAlign: 'center',
-                            textAlignVertical: 'center',
                             backgroundColor: undefined,
                             borderColor: undefined,
                             borderWidth: undefined,
@@ -356,6 +355,9 @@ export const styleUtil = StyleSheet.create({
 });
 
 export const styleFormularioUtil = StyleSheet.create({
+    viewContainer: {
+        width: '100%',
+    },
     containerFormulario: {
         backgroundColor: '#E2E2E2',
         borderColor: '#D8D8D8',
@@ -684,6 +686,7 @@ export type MultipleItemQuantidadeProp = {
     onChange?: (novaLista: ItemQuantidade[]) => void;
     placeholderQtdInput?: string;
     placeholderValorInput?: string;
+    widthDropDownList?: DimensionValue;
 };
 
 export function MultipleItemQuantidade({
@@ -694,6 +697,7 @@ export function MultipleItemQuantidade({
     onChange,
     placeholderQtdInput = 'Quantidade utilizada',
     placeholderValorInput = 'Valor total',
+    widthDropDownList = '95%',
 }: MultipleItemQuantidadeProp): React.JSX.Element {
     const [listaItensQuantidade, setListaItensQuantidade] = useState(
         _.cloneDeep(valoresIniciais ?? []),
@@ -783,7 +787,7 @@ export function MultipleItemQuantidade({
                             onChange={valor =>
                                 handleChangeItemQuantidadeInput(val.id, valor)
                             }
-                            widthDropDownList={'95%'}
+                            widthDropDownList={widthDropDownList}
                             placeholderQtdInput={placeholderQtdInput}
                             placeholderValorInput={placeholderValorInput}
                         />

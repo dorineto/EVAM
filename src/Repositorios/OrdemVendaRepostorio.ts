@@ -8,5 +8,7 @@ export interface OrdemVendaRepositorio {
     listaLocais: () => Promise<Local[]>;
     buscaOrdemVenda: (id: number) => Promise<OrdemVenda | null>;
     gravaOrdemVenda: (compra: OrdemVenda) => Promise<number>;
+    gravaCliente: (cliente: Cliente) => Promise<number>;
+    gravaLocal: (local: Local) => Promise<number>;
     deletaOrdemVenda: (id: number) => Promise<void>;
 }

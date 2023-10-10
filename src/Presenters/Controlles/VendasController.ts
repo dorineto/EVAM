@@ -177,7 +177,6 @@ export function useFormularioOrdemVenda(
             }
 
             const venda = await ordemVendaCasoUso.buscaOrdemVenda(id ?? 0);
-            //const venda: OrdemVenda | null = null;
 
             if (!venda) {
                 return {
@@ -234,14 +233,14 @@ export function useFormularioOrdemVenda(
             vendaVisualizacao.cliente.id === 0 &&
             vendaVisualizacao.cliente.nome.trim() === ''
         ) {
-            return 'Informe o cliente que realizou a compra';
+            throw new Error('Informe o cliente que realizou a compra');
         }
 
         if (
             vendaVisualizacao.local.id === 0 &&
             vendaVisualizacao.local.descricao.trim() === ''
         ) {
-            return 'Informe o local a onde foi realizada a venda';
+            throw new Error('Informe o local a onde foi realizada a venda');
         }
 
         if (
@@ -336,10 +335,27 @@ export function useFormularioOrdemVenda(
             vendaGravar.itensVendidos = itensVendidos;
         }
 
-        const retorno = await ordemVendaCasoUso.gravaOrdemVenda(vendaGravar);
+        const {vendaId, clienteId, localId} =
+            await ordemVendaCasoUso.gravaOrdemVenda(vendaGravar);
 
         if (!vendaGravar.id) {
-            vendaGravar.id = retorno;
+            vendaGravar.id = vendaId;
+        }
+
+        if (!vendaGravar.cliente.id) {
+            const novoCliente = {...vendaGravar.cliente, id: clienteId};
+
+            vendaGravar.cliente = novoCliente;
+
+            setListaClientes(lista => [...lista, novoCliente]);
+        }
+
+        if (!vendaGravar.local.id) {
+            const novoLocal = {...vendaGravar.local, id: localId};
+
+            vendaGravar.local = novoLocal;
+
+            setListaLocais(lista => [...lista, novoLocal]);
         }
 
         let compraDispatch: FormularioOrdemVenda = {
@@ -362,4 +378,16 @@ export function useFormularioOrdemVenda(
         gravaOrdemVenda,
         isLoading,
     ];
+}
+
+export type useDeletaVenda = [(id: number) => Promise<void>];
+
+export function useDeletaOrdemVenda({
+    ordemVendaCasoUso,
+}: CasoUsoInit): useDeletaVenda {
+    async function deleta(id: number) {
+        await ordemVendaCasoUso.deletaOrdemVenda(id);
+    }
+
+    return [deleta];
 }

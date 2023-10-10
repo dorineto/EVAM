@@ -42,7 +42,7 @@ function EstoqueVisualizacao() {
     return (
         <View>
             <ScrollView
-                style={{maxHeight: scrowViewHeight}}
+                style={{height: scrowViewHeight}}
                 contentContainerStyle={[
                     styleScreenUtil.alignCenter,
                     styleScreenUtil.screenContent,
@@ -125,7 +125,7 @@ function EstoqueGerenciamento({
 
     return (
         <ScrollView
-            style={{maxHeight: scrowViewHeight}}
+            style={{height: scrowViewHeight}}
             contentContainerStyle={[
                 styleScreenUtil.alignCenter,
                 styleScreenUtil.screenContent,

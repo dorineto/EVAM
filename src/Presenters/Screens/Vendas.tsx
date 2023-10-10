@@ -4,6 +4,7 @@ import {
     TouchableWithoutFeedback,
     Text,
     StyleSheet,
+    useWindowDimensions,
 } from 'react-native';
 import React from 'react';
 import {useContext} from 'react';
@@ -38,7 +39,7 @@ function VendaVisualizacao() {
     return (
         <View>
             <ScrollView
-                style={{maxHeight: scrowViewHeight}}
+                style={{height: scrowViewHeight}}
                 contentContainerStyle={[
                     styleScreenUtil.alignCenter,
                     styleScreenUtil.screenContent,
@@ -76,10 +77,11 @@ function VendaGerenciamento({
     },
 }: VendaGerenciamentoProps) {
     const scrowViewHeight = useScreenScrollViewHeight();
+    const {width} = useWindowDimensions();
 
     return (
         <ScrollView
-            style={{maxHeight: scrowViewHeight}}
+            style={{height: scrowViewHeight, width: width}}
             contentContainerStyle={[
                 styleScreenUtil.alignCenter,
                 styleScreenUtil.screenContent,
@@ -117,8 +119,7 @@ function Vendas() {
             screenOptions={{
                 headerShown: false,
             }}
-            //initialRouteName="VendaVisualizacao">
-            initialRouteName="VendaGerenciamento">
+            initialRouteName="VendaVisualizacao">
             <VendasStack.Group>
                 <VendasStack.Screen
                     name="VendaVisualizacao"
@@ -127,7 +128,6 @@ function Vendas() {
                 <VendasStack.Screen
                     name="VendaGerenciamento"
                     component={VendaGerenciamento}
-                    initialParams={{}}
                 />
             </VendasStack.Group>
             <VendasStack.Group

@@ -3,7 +3,7 @@ import {OrdemCompra} from '../Entidades/OrdemCompra';
 import {OrdemCompraRepositorio} from '../Repositorios/OrdemCompraRepositorio';
 import {listaOrdemCompras} from './InitialDataStub';
 import ItemRepositorioStub from './ItemRepositorioStub';
-import {ItemEstoque, ItemOrdem} from '../Entidades/Item';
+import {ItemEstoque, ItemOrdem, eItemTipo} from '../Entidades/Item';
 
 export class OrdemCompraRepositorioStub implements OrdemCompraRepositorio {
     private _ordemComprasGravadas: OrdemCompra[];
@@ -30,14 +30,20 @@ export class OrdemCompraRepositorioStub implements OrdemCompraRepositorio {
         const itensEstoqueComprados: {[id: number]: ItemEstoque} = {};
 
         for (let item of compra.itensComprados) {
-            const itemBuscado = await this._itemRepositorio.buscaMateriaPrima(
-                item.item.id,
-            );
+            let itemBuscado: ItemEstoque | null = null;
+
+            if (item.item.tipo === eItemTipo.MateriaPrima) {
+                itemBuscado = await this._itemRepositorio.buscaMateriaPrima(
+                    item.item.id,
+                );
+            } else {
+                itemBuscado = await this._itemRepositorio.buscaProduto(
+                    item.item.id,
+                );
+            }
 
             if (!itemBuscado) {
-                throw new Error(
-                    `Materia prima não encontrado: ID=${item.item.id}`,
-                );
+                throw new Error(`Item não encontrado: ID=${item.item.id}`);
             }
 
             itensEstoqueComprados[itemBuscado.item.id] = itemBuscado;

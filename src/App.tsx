@@ -158,7 +158,7 @@ function App(): JSX.Element {
                     <NavigationContainer>
                         <Tab.Navigator
                             screenOptions={renderIconsBar}
-                            initialRouteName="Vendas"
+                            initialRouteName="Estoque"
                             backBehavior="history">
                             {/* <Tab.Screen
                                 name="Dashboard"

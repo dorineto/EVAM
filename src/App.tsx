@@ -47,6 +47,7 @@ import {OrdemCompraCasoUso} from './CasosUsos/OrdemCompraCasoUso';
 import {OrdemCompraRepositorioStub} from './Data/OrdemCompraRepositorioStub';
 import {OrdemVendaCasoUso} from './CasosUsos/OrdemVendaCasoUso';
 import {OrdemVendaRepositorioStub} from './Data/OrdemVendaRepostorioStub';
+import { EvamSqliteUtil } from './Data/EvamSqliteUtil';
 
 library.add(
     faChartPie,
@@ -128,6 +129,10 @@ export type CasoUsoInit = {
     ordemCompraCasoUso: OrdemCompraCasoUso;
     ordemVendaCasoUso: OrdemVendaCasoUso;
 };
+
+const evamSqliteUtil = new EvamSqliteUtil(true);
+
+evamSqliteUtil.criaEstruturaBanco();
 
 const itemRepositorio = new ItemRepositorioStub();
 

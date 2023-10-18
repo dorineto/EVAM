@@ -4,6 +4,7 @@ import {
     openDatabase,
     deleteDatabase,
 } from 'react-native-sqlite-storage';
+import { scriptCriacaoDB } from './EvamDatabaseScript';
 
 enablePromise(true);
 
@@ -27,19 +28,13 @@ export class EvamSqliteUtil {
                 deleteDatabase(this._dbInfo);
             }
 
-            const querysCreateTables: string[] = [];
-
-            // querysCreateTables.push(`
-
-            // `);
-
-            for (let queryTable in querysCreateTables) {
+            for (let queryTable in scriptCriacaoDB) {
                 await connection.executeSql(queryTable);
             }
 
             this._iniciadoEstruturaBanco = true;
         } catch (e) {
-            console.log(`[iniciaEstruturaBanco] Error: ${JSON.stringify(e)}`);
+            console.log(`[criaEstruturaBanco] Error: ${JSON.stringify(e)}`);
             throw e;
         }
     }

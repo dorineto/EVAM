@@ -20,13 +20,28 @@ export class EvamSqliteUtil {
     }
 
     async criaEstruturaBanco(): Promise<void> {
-        const _ = await this.getConnection();
+        try {
+            const connection = await this.getConnection();
 
-        if (this._resetaBanco) {
-            deleteDatabase(this._dbInfo);
+            if (this._resetaBanco) {
+                deleteDatabase(this._dbInfo);
+            }
+
+            const querysCreateTables: string[] = [];
+
+            // querysCreateTables.push(`
+
+            // `);
+
+            for (let queryTable in querysCreateTables) {
+                await connection.executeSql(queryTable);
+            }
+
+            this._iniciadoEstruturaBanco = true;
+        } catch (e) {
+            console.log(`[iniciaEstruturaBanco] Error: ${JSON.stringify(e)}`);
+            throw e;
         }
-
-        this._iniciadoEstruturaBanco = true;
     }
 
     async getConnection(): Promise<SQLiteDatabase> {

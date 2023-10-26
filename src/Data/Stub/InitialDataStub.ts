@@ -1,10 +1,10 @@
-import {Cliente} from '../Entidades/Cliente';
-import {Item, eItemTipo} from '../Entidades/Item';
-import {Local} from '../Entidades/Local';
-import {eMedida, getMedida} from '../Entidades/Medida';
-import {OrdemCompra} from '../Entidades/OrdemCompra';
-import {OrdemVenda} from '../Entidades/OrdemVenda';
-import {Receita} from '../Entidades/Receita';
+import {Cliente} from '../../Entidades/Cliente';
+import {Item, eItemTipo} from '../../Entidades/Item';
+import {Local} from '../../Entidades/Local';
+import {eMedida, getMedida} from '../../Entidades/Medida';
+import {OrdemCompra} from '../../Entidades/OrdemCompra';
+import {OrdemVenda} from '../../Entidades/OrdemVenda';
+import {Receita} from '../../Entidades/Receita';
 
 export const listaMateriaPrima = [
     {

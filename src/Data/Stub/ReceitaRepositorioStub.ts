@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import {ItemEstoque, ItemMensurado, ItemReceita} from '../Entidades/Item';
-import {Receita} from '../Entidades/Receita';
-import {ReceitaRepositorio} from '../Repositorios/ReceitaRepositorio';
+import {ItemEstoque, ItemMensurado, ItemReceita} from '../../Entidades/Item';
+import {Receita} from '../../Entidades/Receita';
+import {ReceitaRepositorio} from '../../Repositorios/ReceitaRepositorio';
 import {listaReceitas} from './InitialDataStub';
 import ItemRepositorioStub from './ItemRepositorioStub';
 

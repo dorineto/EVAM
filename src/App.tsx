@@ -39,15 +39,15 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {StatusBar, View} from 'react-native';
 import {ItemCasoUso} from './CasosUsos/ItemCasoUso';
-import ItemRepositorioStub from './Data/ItemRepositorioStub';
+import ItemRepositorioStub from './Data/Stub/ItemRepositorioStub';
 import {Store} from './Presenters/Slicers/Store';
 import {ReceitaCasoUso} from './CasosUsos/ReceitaCasoUso';
-import {ReceitaRepositorioStub} from './Data/ReceitaRepositorioStub';
+import {ReceitaRepositorioStub} from './Data/Stub/ReceitaRepositorioStub';
 import {OrdemCompraCasoUso} from './CasosUsos/OrdemCompraCasoUso';
-import {OrdemCompraRepositorioStub} from './Data/OrdemCompraRepositorioStub';
+import {OrdemCompraRepositorioStub} from './Data/Stub/OrdemCompraRepositorioStub';
 import {OrdemVendaCasoUso} from './CasosUsos/OrdemVendaCasoUso';
-import {OrdemVendaRepositorioStub} from './Data/OrdemVendaRepostorioStub';
-import { EvamSqliteUtil } from './Data/EvamSqliteUtil';
+import {OrdemVendaRepositorioStub} from './Data/Stub/OrdemVendaRepostorioStub';
+import {EvamSqliteUtil} from './Data/SQLite/EvamSqliteUtil';
 
 library.add(
     faChartPie,

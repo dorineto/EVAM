@@ -1,9 +1,9 @@
 import _ from 'lodash';
-import {OrdemCompra} from '../Entidades/OrdemCompra';
-import {OrdemCompraRepositorio} from '../Repositorios/OrdemCompraRepositorio';
+import {OrdemCompra} from '../../Entidades/OrdemCompra';
+import {OrdemCompraRepositorio} from '../../Repositorios/OrdemCompraRepositorio';
 import {listaOrdemCompras} from './InitialDataStub';
 import ItemRepositorioStub from './ItemRepositorioStub';
-import {ItemEstoque, ItemOrdem, eItemTipo} from '../Entidades/Item';
+import {ItemEstoque, ItemOrdem, eItemTipo} from '../../Entidades/Item';
 
 export class OrdemCompraRepositorioStub implements OrdemCompraRepositorio {
     private _ordemComprasGravadas: OrdemCompra[];

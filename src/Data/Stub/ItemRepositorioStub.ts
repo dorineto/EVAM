@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import {ItemEstoque, eItemTipo} from '../Entidades/Item';
-import {ItemRepositorio} from '../Repositorios/ItemRepositorio';
+import {ItemEstoque, eItemTipo} from '../../Entidades/Item';
+import {ItemRepositorio} from '../../Repositorios/ItemRepositorio';
 import {listaMateriaPrima, listaProdutos} from './InitialDataStub';
 
 export default class ItemRepositorioStub implements ItemRepositorio {

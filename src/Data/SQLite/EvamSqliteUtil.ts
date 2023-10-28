@@ -3,12 +3,10 @@ import {
     SQLiteDatabase,
     openDatabase,
     deleteDatabase,
-    //DEBUG,
     DatabaseParams,
 } from 'react-native-sqlite-storage';
 import {scriptCriacaoDB} from './EvamDatabaseScript';
 
-//DEBUG(true);
 enablePromise(true);
 
 export class EvamSqliteUtil {
@@ -30,11 +28,7 @@ export class EvamSqliteUtil {
             "select name from sqlite_master where type = 'table' and name = 'Item'",
         );
 
-        const retorno = resultado.rows.length > 0;
-
-        await connection.close();
-
-        return retorno;
+        return resultado.rows.length > 0;
     }
 
     async criaEstruturaBanco(): Promise<void> {
@@ -51,7 +45,6 @@ export class EvamSqliteUtil {
                 await connection.executeSql(queryTable);
             }
 
-            await connection.close();
             this._iniciadoEstruturaBanco = true;
         } catch (e) {
             console.log(`[criaEstruturaBanco] Error: ${JSON.stringify(e)}`);
@@ -60,7 +53,12 @@ export class EvamSqliteUtil {
     }
 
     async getConnection(): Promise<SQLiteDatabase> {
-        return await openDatabase({...this._dbInfo});
+        try {
+            return await openDatabase({...this._dbInfo});
+        } catch (e) {
+            console.log(`[getConnection] Error: ${JSON.stringify(e)}`);
+            throw e;
+        }
     }
 
     get estruturaIniciada(): boolean {

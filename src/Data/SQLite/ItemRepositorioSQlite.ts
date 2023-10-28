@@ -1,7 +1,6 @@
 import {ItemEstoque, eItemTipo} from '../../Entidades/Item';
 import {ItemRepositorio} from '../../Repositorios/ItemRepositorio';
 import {EvamSqliteUtil} from './EvamSqliteUtil';
-//import {listaMateriaPrima, listaProdutos} from './InitialDataStub';
 
 import {enablePromise} from 'react-native-sqlite-storage';
 import {getMedida} from '../../Entidades/Medida';
@@ -10,7 +9,7 @@ type ItemEstoqueRegistro = {
     item_id: number;
     tipo: eItemTipo;
     descricao: string;
-    inclusao: Date;
+    inclusao: string;
     medida_id: number;
     qtd_estoque: number;
     med_valor_unid: number;
@@ -43,8 +42,8 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
             ,qtd_estoque
             ,med_valor_unid
             from Item 
-            where item_tipo = ?`,
-            [tipo],
+            where item_tipo_id = ?;`,
+            [<number>tipo],
         );
 
         const retorno: ItemEstoque[] = [];
@@ -58,13 +57,11 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
                     descricao: linha.descricao,
                     inclusao: linha.inclusao,
                     medida_id: linha.medida_id,
-                    med_valor_unid: linha.medida_id,
+                    med_valor_unid: linha.med_valor_unid,
                     qtd_estoque: linha.qtd_estoque,
                 }),
             );
         }
-
-        connection.close();
 
         return retorno;
     }
@@ -77,7 +74,7 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
                 id: itemEstoqueRegistro.item_id,
                 tipo: itemEstoqueRegistro.tipo,
                 descricao: itemEstoqueRegistro.descricao,
-                inclusao: itemEstoqueRegistro.inclusao.toISOString(),
+                inclusao: itemEstoqueRegistro.inclusao,
             },
             medida: getMedida(itemEstoqueRegistro.medida_id),
             qtd: itemEstoqueRegistro.qtd_estoque,
@@ -107,8 +104,8 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
             ,qtd_estoque
             ,med_valor_unid
             from Item 
-            where item_tipo = ?
-              and item_id = ?`,
+            where item_tipo_id = ?
+              and item_id = ?;`,
             [tipo, id],
         );
 
@@ -118,15 +115,13 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
 
         const linha = resultado.rows.item(0);
 
-        connection.close();
-
         return ItemRepositorioSQlite.traduzRegistroItemEstoque({
             item_id: linha.item_id,
             tipo: tipo,
             descricao: linha.descricao,
             inclusao: linha.inclusao,
             medida_id: linha.medida_id,
-            med_valor_unid: linha.medida_id,
+            med_valor_unid: linha.med_valor_unid,
             qtd_estoque: linha.qtd_estoque,
         });
     }
@@ -143,7 +138,7 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
         const connection = await this._sqliteUtil.getConnection();
 
         const [resultadoItemExiste] = await connection.executeSql(
-            'select item_id from Item where item_id = ?',
+            'select item_id from Item where item_id = ?;',
             [item.item.id],
         );
 
@@ -151,12 +146,11 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
 
         if (itemGravado) {
             await connection.executeSql(
-                `update descricao = ?,
+                `update Item set descricao = ?,
                 medida_id = ?,
                 qtd_estoque = ?,
-                med_valor_unid = ?,
-                from Item 
-                where item_id = ?`,
+                med_valor_unid = ?
+                where item_id = ?;`,
                 [
                     item.item.descricao,
                     item.medida.id,
@@ -170,7 +164,7 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
         }
 
         const [resultadoUltimoId] = await connection.executeSql(
-            'select max(item_id) ultimo_id from Item ',
+            'select max(item_id) ultimo_id from Item;',
             [],
         );
 
@@ -179,9 +173,26 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
             novoId = (resultadoUltimoId.rows.item(0).ultimo_id ?? 0) + 1;
         }
 
-        //TODO: Implementar o insert no item
-
-        connection.close();
+        await connection.executeSql(
+            `insert or ignore into Item (
+                item_id,
+                medida_id,
+                item_tipo_id,
+                descricao,
+                qtd_estoque,
+                med_valor_unid
+            )
+            values
+            (?, ?, ?, ?, ?, ?);`,
+            [
+                (item.item?.id ?? 0) > 0 ? item.item.id : novoId,
+                item.medida.id,
+                <number>item.item.tipo,
+                item.item.descricao,
+                item.qtd,
+                item.valorMediaUnidade,
+            ],
+        );
 
         return novoId;
     }
@@ -198,7 +209,5 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
         const connection = await this._sqliteUtil.getConnection();
 
         await connection.executeSql('delete from Item where item_id = ?', [id]);
-
-        connection.close();
     }
 }

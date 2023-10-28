@@ -1,5 +1,5 @@
 import React from 'react';
-import {createContext} from 'react';
+import {createContext, useEffect, useState} from 'react';
 
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
@@ -39,7 +39,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {StatusBar, View} from 'react-native';
 import {ItemCasoUso} from './CasosUsos/ItemCasoUso';
-import ItemRepositorioStub from './Data/Stub/ItemRepositorioStub';
+//import ItemRepositorioStub from './Data/Stub/ItemRepositorioStub';
 import {Store} from './Presenters/Slicers/Store';
 import {ReceitaCasoUso} from './CasosUsos/ReceitaCasoUso';
 import {ReceitaRepositorioStub} from './Data/Stub/ReceitaRepositorioStub';
@@ -48,6 +48,9 @@ import {OrdemCompraRepositorioStub} from './Data/Stub/OrdemCompraRepositorioStub
 import {OrdemVendaCasoUso} from './CasosUsos/OrdemVendaCasoUso';
 import {OrdemVendaRepositorioStub} from './Data/Stub/OrdemVendaRepostorioStub';
 import {EvamSqliteUtil} from './Data/SQLite/EvamSqliteUtil';
+import ItemRepositorioSQlite from './Data/SQLite/ItemRepositorioSQlite';
+import {setupInitialDataSQLite} from './Data/SQLite/EvamSqliteSetupInitialData';
+import {Text} from 'react-native-svg';
 
 library.add(
     faChartPie,
@@ -132,9 +135,8 @@ export type CasoUsoInit = {
 
 const evamSqliteUtil = new EvamSqliteUtil(true);
 
-evamSqliteUtil.criaEstruturaBanco();
-
-const itemRepositorio = new ItemRepositorioStub();
+//const itemRepositorio = new ItemRepositorioStub();
+const itemRepositorio = new ItemRepositorioSQlite(evamSqliteUtil);
 
 const casoUsoInit: CasoUsoInit = {
     itemCasoUso: new ItemCasoUso(itemRepositorio),
@@ -152,31 +154,60 @@ const casoUsoInit: CasoUsoInit = {
     ),
 };
 
+function useSetupDatabase() {
+    const [dbLoaded, setDbLoaded] = useState(false);
+
+    useEffect(() => {
+        async function loadDb() {
+            await evamSqliteUtil.criaEstruturaBanco();
+
+            await setupInitialDataSQLite({
+                itemRepositorio: itemRepositorio,
+            });
+
+            setDbLoaded(true);
+        }
+
+        loadDb();
+    }, [setDbLoaded]);
+
+    return [dbLoaded];
+}
+
 export const CasoUso = createContext<CasoUsoInit>(casoUsoInit);
 
 function App(): JSX.Element {
+    const [dbLoaded] = useSetupDatabase();
+
     return (
         <Provider store={Store}>
             <CasoUso.Provider value={casoUsoInit}>
                 <SafeAreaProvider>
                     <StatusBar />
-                    <NavigationContainer>
-                        <Tab.Navigator
-                            screenOptions={renderIconsBar}
-                            initialRouteName="Estoque"
-                            backBehavior="history">
-                            {/* <Tab.Screen
+                    {dbLoaded ? (
+                        <NavigationContainer>
+                            <Tab.Navigator
+                                screenOptions={renderIconsBar}
+                                initialRouteName="Estoque"
+                                backBehavior="history">
+                                {/* <Tab.Screen
                                 name="Dashboard"
                                 component={Dashboard}
                             /> */}
-                            <Tab.Screen name="Estoque" component={Estoque} />
-                            <Tab.Screen name="Vendas" component={Vendas} />
-                            {/* <Tab.Screen
+                                <Tab.Screen
+                                    name="Estoque"
+                                    component={Estoque}
+                                />
+                                <Tab.Screen name="Vendas" component={Vendas} />
+                                {/* <Tab.Screen
                                 name="Configuracoes"
                                 component={Configuracoes}
                             /> */}
-                        </Tab.Navigator>
-                    </NavigationContainer>
+                            </Tab.Navigator>
+                        </NavigationContainer>
+                    ) : (
+                        <Text>...loading</Text>
+                    )}
                 </SafeAreaProvider>
             </CasoUso.Provider>
         </Provider>

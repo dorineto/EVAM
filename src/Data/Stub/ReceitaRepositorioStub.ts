@@ -3,13 +3,13 @@ import {ItemEstoque, ItemMensurado, ItemReceita} from '../../Entidades/Item';
 import {Receita} from '../../Entidades/Receita';
 import {ReceitaRepositorio} from '../../Repositorios/ReceitaRepositorio';
 import {listaReceitas} from './InitialDataStub';
-import ItemRepositorioStub from './ItemRepositorioStub';
+import {ItemRepositorio} from '../../Repositorios/ItemRepositorio';
 
 export class ReceitaRepositorioStub implements ReceitaRepositorio {
     private _listaReceitas: Receita[];
-    private _repositorioItem: ItemRepositorioStub;
+    private _repositorioItem: ItemRepositorio;
 
-    constructor(repositorioItem: ItemRepositorioStub) {
+    constructor(repositorioItem: ItemRepositorio) {
         this._listaReceitas = [...listaReceitas];
         this._repositorioItem = repositorioItem;
     }

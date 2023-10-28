@@ -2,18 +2,18 @@ import _ from 'lodash';
 import {OrdemVenda} from '../../Entidades/OrdemVenda';
 import {OrdemVendaRepositorio} from '../../Repositorios/OrdemVendaRepostorio';
 import {listaClientes, listaLocais, listaVendas} from './InitialDataStub';
-import ItemRepositorioStub from './ItemRepositorioStub';
 import {Cliente} from '../../Entidades/Cliente';
 import {Local} from '../../Entidades/Local';
 import {ItemEstoque, ItemOrdem, eItemTipo} from '../../Entidades/Item';
+import {ItemRepositorio} from '../../Repositorios/ItemRepositorio';
 
 export class OrdemVendaRepositorioStub implements OrdemVendaRepositorio {
     private _ordemVendasGravadas: OrdemVenda[];
     private _clientesGravados: Cliente[];
     private _locaisGravados: Local[];
-    private _itemRepositorio: ItemRepositorioStub;
+    private _itemRepositorio: ItemRepositorio;
 
-    constructor(itemRepositorio: ItemRepositorioStub) {
+    constructor(itemRepositorio: ItemRepositorio) {
         this._ordemVendasGravadas = listaVendas;
         this._clientesGravados = listaClientes;
         this._locaisGravados = listaLocais;

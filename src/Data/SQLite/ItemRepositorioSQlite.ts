@@ -1,19 +1,22 @@
-import {ItemEstoque, eItemTipo} from '../../Entidades/Item';
+import {Item, ItemEstoque, eItemTipo} from '../../Entidades/Item';
 import {ItemRepositorio} from '../../Repositorios/ItemRepositorio';
 import {EvamSqliteUtil} from './EvamSqliteUtil';
 
 import {enablePromise} from 'react-native-sqlite-storage';
 import {getMedida} from '../../Entidades/Medida';
 
-type ItemEstoqueRegistro = {
+interface ItemRegistro {
     item_id: number;
     tipo: eItemTipo;
     descricao: string;
     inclusao: string;
+}
+
+interface ItemEstoqueRegistro extends ItemRegistro {
     medida_id: number;
     qtd_estoque: number;
     med_valor_unid: number;
-};
+}
 
 enablePromise(true);
 export default class ItemRepositorioSQlite implements ItemRepositorio {
@@ -70,15 +73,19 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
         itemEstoqueRegistro: ItemEstoqueRegistro,
     ): ItemEstoque {
         return {
-            item: {
-                id: itemEstoqueRegistro.item_id,
-                tipo: itemEstoqueRegistro.tipo,
-                descricao: itemEstoqueRegistro.descricao,
-                inclusao: itemEstoqueRegistro.inclusao,
-            },
+            item: ItemRepositorioSQlite.traduzRegistroItem(itemEstoqueRegistro),
             medida: getMedida(itemEstoqueRegistro.medida_id),
             qtd: itemEstoqueRegistro.qtd_estoque,
             valorMediaUnidade: itemEstoqueRegistro.med_valor_unid,
+        };
+    }
+
+    private static traduzRegistroItem(itemRegistro: ItemRegistro): Item {
+        return {
+            id: itemRegistro.item_id,
+            tipo: itemRegistro.tipo,
+            descricao: itemRegistro.descricao,
+            inclusao: itemRegistro.inclusao,
         };
     }
 
@@ -209,5 +216,57 @@ export default class ItemRepositorioSQlite implements ItemRepositorio {
         const connection = await this._sqliteUtil.getConnection();
 
         await connection.executeSql('delete from Item where item_id = ?', [id]);
+    }
+
+    async buscaItens(...ids: number[]): Promise<Item[]> {
+        if (ids.length <= 0) {
+            return [];
+        }
+
+        const connection = await this._sqliteUtil.getConnection();
+
+        const [resultado] = await connection.executeSql(
+            `select item_id,
+            item_tipo_id,
+            descricao,
+            inclusao
+            from Item 
+            where item_id in (?);`,
+            [ids.join(',')],
+        );
+
+        const retorno: Item[] = [];
+        for (let i = 0; i < resultado.rows.length; i++) {
+            const linha = resultado.rows.item(i);
+
+            retorno.push(
+                ItemRepositorioSQlite.traduzRegistroItem({
+                    item_id: linha.item_id,
+                    tipo: ItemRepositorioSQlite.traduzItemTipo(
+                        linha.item_tipo_id,
+                    ),
+                    descricao: linha.descricao,
+                    inclusao: linha.inclusao,
+                }),
+            );
+        }
+
+        return retorno;
+    }
+
+    private static traduzItemTipo(itemTipoId: number): eItemTipo {
+        let retorno: eItemTipo;
+        switch (itemTipoId) {
+            case 1:
+                retorno = eItemTipo.MateriaPrima;
+                break;
+            case 2:
+                retorno = eItemTipo.Produto;
+                break;
+            default:
+                throw new Error('Tipo de item não identificado');
+        }
+
+        return retorno;
     }
 }

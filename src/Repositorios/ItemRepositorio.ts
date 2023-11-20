@@ -1,4 +1,4 @@
-import {ItemEstoque} from '../Entidades/Item';
+import {Item, ItemEstoque} from '../Entidades/Item';
 
 export interface ItemRepositorio {
     listaMateriasPrimas: () => Promise<ItemEstoque[]>;
@@ -9,4 +9,5 @@ export interface ItemRepositorio {
     buscaProduto: (id: number) => Promise<ItemEstoque | null>;
     gravaProduto: (item: ItemEstoque) => Promise<number>;
     deletaProduto: (id: number) => Promise<void>;
+    buscaItens: (...ids: number[]) => Promise<Item[]>;
 }

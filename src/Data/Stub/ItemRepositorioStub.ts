@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {ItemEstoque, eItemTipo} from '../../Entidades/Item';
+import {Item, ItemEstoque, eItemTipo} from '../../Entidades/Item';
 import {ItemRepositorio} from '../../Repositorios/ItemRepositorio';
 import {listaMateriaPrima, listaProdutos} from './InitialDataStub';
 
@@ -86,5 +86,15 @@ export default class ItemRepositorioStub implements ItemRepositorio {
         this._itensGravados = this._itensGravados.filter(
             ig => ig.item.id !== id,
         );
+    }
+
+    async buscaItens(...ids: number[]): Promise<Item[]> {
+        if (ids.length <= 0) {
+            return [];
+        }
+
+        return this._itensGravados
+            .filter(ig => ids.includes(ig.item.id))
+            .map(ig => ig.item);
     }
 }
